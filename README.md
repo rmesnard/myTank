@@ -32,7 +32,11 @@ sudo docker run -d --name="mytank" -p 5050:5050 -v mytank_config:/usr/share/conf
 
 #share config
 
-..
+sudo docker run -d -p 445:445 \
+  -v  mytank_config:/share/conf \
+  --name samba_tank trnape/rpi-samba \
+  -u "admin:hapwd" \
+  -s "config:/share/conf:rw:admin"
 
 #console
 
