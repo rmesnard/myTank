@@ -27,7 +27,7 @@ sudo docker volume create mytank_config
 
 #run
 
-sudo docker run -d --name="mytank" -p 5050:5050 -v mytank_config:/conf lijah/mytank
+sudo docker run -d --name="mytank" -p 5050:5050 -v mytank_config:/usr/share/conf lijah/mytank
 
 
 #share config
