@@ -1,6 +1,5 @@
 FROM resin/raspberrypi3-python:3.7-stretch
 
-VOLUME /conf
 ENV FLASK_APP run.py
 EXPOSE 5005
 
@@ -15,9 +14,4 @@ WORKDIR /conf
 RUN pip install -r requirements.txt
 RUN pip3 install PyBluez
 RUN pip3 install daemonize
-
-RUN python manage.py makemigrations
-RUN python manage.py migrate
-
-CMD ["gunicorn", "--config", "gunicorn-cfg.py", "core.wsgi"]
 
