@@ -3,9 +3,8 @@
 echo "Starting."
 
 echo "Install config."
-if [ ! -d "/usr/share/config" ]; then
+if [ ! -e "/usr/share/config/mytank.py" ]; then
   echo "Install default config."
-  mkdir /usr/share/config
   cp -R -f /conf /usr/share/config
 fi
 chmod -R 777 /usr/share/config
