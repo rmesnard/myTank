@@ -8,11 +8,13 @@ RUN apt-get install libbluetooth-dev
 RUN apt-get install python-dev
 RUN pip3 install --upgrade pip
 
-COPY conf conf 
-WORKDIR /conf
+COPY requirements.txt requirements.txt 
 
 RUN pip install -r requirements.txt
 RUN pip3 install PyBluez
 RUN pip3 install daemonize
 
-CMD ["bash","/start-daemon.sh"]
+COPY conf conf 
+WORKDIR /conf
+
+CMD ["bash","start-daemon.sh"]
