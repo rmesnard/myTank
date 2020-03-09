@@ -5,7 +5,7 @@ echo "Starting."
 echo "Install config."
 if [ ! -e "/usr/share/config/mytank.py" ]; then
   echo "Install default config."
-  cp -R -f /conf /usr/share/config
+  cp -R -f /config /usr/share
 fi
 chmod -R 777 /usr/share/config
 
