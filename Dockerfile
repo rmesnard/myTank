@@ -14,7 +14,7 @@ RUN pip install -r requirements.txt
 RUN pip3 install PyBluez
 RUN pip3 install daemonize
 
-COPY conf config 
+COPY config config 
 WORKDIR /config
 
 CMD ["bash","start-daemon.sh"]
