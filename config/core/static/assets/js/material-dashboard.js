@@ -28,6 +28,11 @@
   }
 })();
 
+  // Page Globals
+
+  G_keyboard_enabled = false;
+  G_joystick_enabled = false;
+  G_joystick_available = false;
 
 var breakCards = true;
 
@@ -56,6 +61,7 @@ $(document).ready(function() {
   $sidebar = $('.sidebar');
 
   md.initSidebarsCheck();
+  md.refreshbutton();
 
   window_width = $(window).width();
 
@@ -135,6 +141,36 @@ $(document).on('click', '.navbar-toggler', function() {
 
 });
 
+  // Buttons Actions
+  $( "#button_keyboard" ).click(function() {
+    if ( G_keyboard_enabled )
+      G_keyboard_enabled =false;
+    else
+      G_keyboard_enabled =true;
+
+    md.refreshbutton();
+  });
+
+  $( "#button_joystick" ).click(function() {
+    if ( G_joystick_available )
+    {
+      if ( G_joystick_enabled )
+        G_joystick_enabled =false;
+      else
+        G_joystick_enabled =true;
+      md.refreshbutton();
+    }
+  });
+
+  // Event Handlers
+  $(document).keydown(function(e) {
+    //
+    if ( G_keyboard_enabled )
+      alert( "Handler for .keydown() called." );
+    //if ( e.keyCode === 119 ) // w
+    //    doSomething();
+  });
+
 // activate collapse right menu when the windows is resized
 $(window).resize(function() {
   md.initSidebarsCheck();
@@ -152,6 +188,41 @@ md = {
     navbar_menu_visible: 0,
     active_collapse: true,
     disabled_collapse_init: 0,
+  },
+
+  refreshbutton: function() {
+
+    if (G_keyboard_enabled) 
+    {
+      $("#keyboard_enabled").removeClass("card-header-warning");
+      $("#keyboard_enabled").addClass("card-header-success");
+      $("#keyboard_enabled").find("h3").html("Enabled");
+    }
+    else
+    {
+      $("#keyboard_enabled").removeClass("card-header-success");
+      $("#keyboard_enabled").addClass("card-header-warning");
+      $("#keyboard_enabled").find("h3").html("Disabled");
+    }
+
+    if (G_joystick_enabled) 
+    {
+      $("#joystick_enabled").removeClass("card-header-warning");
+      $("#joystick_enabled").addClass("card-header-success");
+      $("#joystick_enabled").find("h3").html("Enabled");
+    }
+    else
+    {
+      $("#joystick_enabled").removeClass("card-header-success");
+      $("#joystick_enabled").addClass("card-header-warning");
+      $("#joystick_enabled").find("h3").html("Disabled");      
+    }
+
+      if (G_joystick_available) 
+      $("#joystick_available").html('<i class="material-icons">bluetooth_connected</i>  Available')
+    else
+      $("#joystick_available").html('<i class="material-icons">bluetooth_connected</i>  Not available')
+
   },
 
   checkSidebarImage: function() {
@@ -307,103 +378,100 @@ md = {
     }
   },
 
+  initDashboardPageGyroscope: function() {
+    var scene = new THREE.Scene();
+    scene.background = new THREE.Color( 0xffffff );
+    var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+    
+    var renderer = new THREE.WebGLRenderer();
+    var sizX = $("#gyroscope3d_container").innerWidth() - 45;
+    
+    //var sizX = 300;
+    renderer.setSize( sizX, sizX / 2 );
+    document.getElementById('gyroscope3d_render').appendChild( renderer.domElement );
+    
+    var geometry = new THREE.BoxGeometry();
+    var material = new THREE.MeshBasicMaterial( { color: 0x008888 } );
+    var cube = new THREE.Mesh( geometry, material );
+    scene.add( cube );
+    
+    camera.position.z = 5;
+    
+    function animate() {
+      requestAnimationFrame( animate );
+      cube.rotation.x += 0.01;
+      cube.rotation.y += 0.01;
+      renderer.render( scene, camera );
+    }
+    animate();
+    
+  },
+
   initDashboardPageCharts: function() {
 
-    if ($('#dailySalesChart').length != 0 || $('#completedTasksChart').length != 0 || $('#websiteViewsChart').length != 0) {
-      /* ----------==========     Daily Sales Chart initialization    ==========---------- */
+    if ($('#mainbatteryChart').length != 0 || $('#completedTasksChart').length != 0 || $('#websiteViewsChart').length != 0) {
+      /* ----------==========     mainbatteryChart Chart initialization    ==========---------- */
 
-      dataDailySalesChart = {
-        labels: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
+      datamainbatteryChart = {
+        labels: [],
         series: [
-          [12, 17, 7, 17, 23, 18, 38]
+          [100, 80, 70, 60, 50, 40 , 50]
         ]
       };
 
-      optionsDailySalesChart = {
+      optionsmainbatteryChart = {
         lineSmooth: Chartist.Interpolation.cardinal({
           tension: 0
         }),
-        low: 0,
-        high: 50, // creative tim: we recommend you to set the high sa the biggest value + something for a better look
+        low: 10,
+        high: 120, // creative tim: we recommend you to set the high sa the biggest value + something for a better look
         chartPadding: {
           top: 0,
           right: 0,
           bottom: 0,
           left: 0
         },
-      }
-
-      var dailySalesChart = new Chartist.Line('#dailySalesChart', dataDailySalesChart, optionsDailySalesChart);
-
-      md.startAnimationForLineChart(dailySalesChart);
-
-
-
-      /* ----------==========     Completed Tasks Chart initialization    ==========---------- */
-
-      dataCompletedTasksChart = {
-        labels: ['12p', '3p', '6p', '9p', '12p', '3a', '6a', '9a'],
-        series: [
-          [230, 750, 450, 300, 280, 240, 200, 190]
-        ]
-      };
-
-      optionsCompletedTasksChart = {
-        lineSmooth: Chartist.Interpolation.cardinal({
-          tension: 0
-        }),
-        low: 0,
-        high: 1000, // creative tim: we recommend you to set the high sa the biggest value + something for a better look
-        chartPadding: {
-          top: 0,
-          right: 0,
-          bottom: 0,
-          left: 0
-        }
-      }
-
-      var completedTasksChart = new Chartist.Line('#completedTasksChart', dataCompletedTasksChart, optionsCompletedTasksChart);
-
-      // start animation for the Completed Tasks Chart - Line Chart
-      md.startAnimationForLineChart(completedTasksChart);
-
-
-      /* ----------==========     Emails Subscription Chart initialization    ==========---------- */
-
-      var dataWebsiteViewsChart = {
-        labels: ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'],
-        series: [
-          [542, 443, 320, 780, 553, 453, 326, 434, 568, 610, 756, 895]
-
-        ]
-      };
-      var optionsWebsiteViewsChart = {
         axisX: {
+          showLabel: false,
           showGrid: false
-        },
-        low: 0,
-        high: 1000,
+        },        
+      }
+
+      var mainbatteryChart = new Chartist.Line('#mainbatteryChart', datamainbatteryChart, optionsmainbatteryChart);
+
+      md.startAnimationForLineChart(mainbatteryChart);
+
+
+      datasecondbatteryChart = {
+        labels: [],
+        series: [
+          [100, 80, 70, 60, 50, 40 , 50]
+        ]
+      };
+
+      optionssecondbatteryChart = {
+        lineSmooth: Chartist.Interpolation.cardinal({
+          tension: 0
+        }),
+        low: 10,
+        high: 120, // creative tim: we recommend you to set the high sa the biggest value + something for a better look
         chartPadding: {
           top: 0,
-          right: 5,
+          right: 0,
           bottom: 0,
           left: 0
-        }
-      };
-      var responsiveOptions = [
-        ['screen and (max-width: 640px)', {
-          seriesBarDistance: 5,
-          axisX: {
-            labelInterpolationFnc: function(value) {
-              return value[0];
-            }
-          }
-        }]
-      ];
-      var websiteViewsChart = Chartist.Bar('#websiteViewsChart', dataWebsiteViewsChart, optionsWebsiteViewsChart, responsiveOptions);
+        },
+        axisX: {
+          showLabel: false,
+          showGrid: false
+        },        
+      }
 
-      //start animation for the Emails Subscription Chart
-      md.startAnimationForBarChart(websiteViewsChart);
+      var secondbatteryChart = new Chartist.Line('#secondbatteryChart', datasecondbatteryChart, optionssecondbatteryChart);
+
+      md.startAnimationForLineChart(secondbatteryChart);
+
+
     }
   },
 
@@ -536,6 +604,110 @@ md = {
     });
 
     seq2 = 0;
+  },
+
+  initGoogleMaps: function() {
+    var myLatlng = new google.maps.LatLng(40.748817, -73.985428);
+    var mapOptions = {
+      zoom: 13,
+      center: myLatlng,
+      scrollwheel: false, //we disable de scroll over the map, it is a really annoing when you scroll through page
+      styles: [{
+        "featureType": "water",
+        "stylers": [{
+          "saturation": 43
+        }, {
+          "lightness": -11
+        }, {
+          "hue": "#0088ff"
+        }]
+      }, {
+        "featureType": "road",
+        "elementType": "geometry.fill",
+        "stylers": [{
+          "hue": "#ff0000"
+        }, {
+          "saturation": -100
+        }, {
+          "lightness": 99
+        }]
+      }, {
+        "featureType": "road",
+        "elementType": "geometry.stroke",
+        "stylers": [{
+          "color": "#808080"
+        }, {
+          "lightness": 54
+        }]
+      }, {
+        "featureType": "landscape.man_made",
+        "elementType": "geometry.fill",
+        "stylers": [{
+          "color": "#ece2d9"
+        }]
+      }, {
+        "featureType": "poi.park",
+        "elementType": "geometry.fill",
+        "stylers": [{
+          "color": "#ccdca1"
+        }]
+      }, {
+        "featureType": "road",
+        "elementType": "labels.text.fill",
+        "stylers": [{
+          "color": "#767676"
+        }]
+      }, {
+        "featureType": "road",
+        "elementType": "labels.text.stroke",
+        "stylers": [{
+          "color": "#ffffff"
+        }]
+      }, {
+        "featureType": "poi",
+        "stylers": [{
+          "visibility": "off"
+        }]
+      }, {
+        "featureType": "landscape.natural",
+        "elementType": "geometry.fill",
+        "stylers": [{
+          "visibility": "on"
+        }, {
+          "color": "#b8cb93"
+        }]
+      }, {
+        "featureType": "poi.park",
+        "stylers": [{
+          "visibility": "on"
+        }]
+      }, {
+        "featureType": "poi.sports_complex",
+        "stylers": [{
+          "visibility": "on"
+        }]
+      }, {
+        "featureType": "poi.medical",
+        "stylers": [{
+          "visibility": "on"
+        }]
+      }, {
+        "featureType": "poi.business",
+        "stylers": [{
+          "visibility": "simplified"
+        }]
+      }]
+
+    };
+    var map = new google.maps.Map(document.getElementById("map"), mapOptions);
+
+    var marker = new google.maps.Marker({
+      position: myLatlng,
+      title: "Hello World!"
+    });
+
+    // To add the marker to the map, call setMap();
+    marker.setMap(map);
   },
 
 

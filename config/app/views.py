@@ -24,6 +24,20 @@ def pages(request):
         load_template = request.path.split('/')[-1]
 
         context['segment'] = load_template
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0]
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+        context['ip'] =ip
+
+        if ( load_template == "page-control.html" ):
+            context['keyboard_enabled'] = 'Disabled'
+            context['joystick_enabled'] = 'Disabled'
+            context['joystick_available'] = 'Not available'
+            context['joystick_state'] = 'text-danger'
+            # context['joystick_state'] = 'text-success'
+
 
         template = loader.get_template('pages/' + load_template)
         return HttpResponse(template.render(context, request))

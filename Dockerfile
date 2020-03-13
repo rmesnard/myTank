@@ -12,7 +12,6 @@ COPY requirements.txt requirements.txt
 
 RUN pip install -r requirements.txt
 RUN pip3 install PyBluez
-RUN pip3 install daemonize
 
 COPY config config 
 WORKDIR /config

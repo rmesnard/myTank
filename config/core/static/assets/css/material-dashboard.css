@@ -26,6 +26,8 @@
   box-sizing: border-box;
 }
 
+canvas { display: block; }
+
 html {
   font-family: sans-serif;
   line-height: 1.15;
@@ -17293,6 +17295,13 @@ label {
 .card-stats .card-header .card-icon+.card-title,
 .card-stats .card-header .card-icon+.card-category {
   padding-top: 10px;
+}
+
+.card-touch {
+  
+  margin-bottom: 30px;
+  
+  margin-left: 20px;
 }
 
 .card-stats .card-header.card-header-icon .card-title,
