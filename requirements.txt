@@ -11,4 +11,3 @@ gunicorn
 whitenoise
 django-heroku
 requests
-pyserial
