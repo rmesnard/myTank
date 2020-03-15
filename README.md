@@ -27,7 +27,7 @@ sudo docker volume create mytank_config
 
 #run
 
-sudo docker run -d --name="mytank" -p 80:5050 -v mytank_config:/usr/share/config --device=/dev/ttyUSB0 lijah/mytank
+sudo docker run -d --name="mytank" -p 80:5005 -v mytank_config:/usr/share/config lijah/mytank
 
 
 #share config
