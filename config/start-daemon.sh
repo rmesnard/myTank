@@ -14,7 +14,7 @@ cd /usr/share/config
 python manage.py makemigrations
 python manage.py migrate
 
-nohup python3 -u mytank.py 2> doorbell.log 
+nohup python3 -u mytank.py 2> mytank.log 
 
 nohup gunicorn --config gunicorn-cfg.py core.wsgi
 
