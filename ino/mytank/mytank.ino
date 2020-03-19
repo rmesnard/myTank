@@ -5,9 +5,15 @@ arduino ethenet controller for actuators and sensors
 
 #include <SPI.h>
 #include <Ethernet.h>
-#include <Servo.h>
+#include <Wire.h>
+#include <Adafruit_PWMServoDriver.h>
+
+
 
 #define API_KEY   "1c90a0dc-0c8c-439f-b97b-a600d67a451a"
+
+Adafruit_PWMServoDriver pwm1 = Adafruit_PWMServoDriver(0x40);
+
 // Enter a MAC address and IP address for your controller below.
 // The IP address will be dependent on your local network.
 // gateway and subnet are optional:
@@ -22,7 +28,6 @@ IPAddress subnet(255, 255, 0, 0);
 EthernetServer server(80);
 boolean debug = true;
 unsigned long beatime = 0;
-
 unsigned long mytime;
 
 
@@ -64,24 +69,24 @@ int todolist_status[10] = { 0x00,0x00,0x00,0x00,0x00 };
 
 // LEFT brake (servo)
 #define SERVO_LEFT_PIN  9
-#define SERVO_LEFT_MAX  359
-#define SERVO_LEFT_MIN  1500
+#define SERVO_LEFT_MAX  1900
+#define SERVO_LEFT_MIN  1000
 // RIGHT brake (servo)
 #define SERVO_RIGHT_PIN  8
-#define SERVO_RIGHT_MAX  359
-#define SERVO_RIGHT_MIN  1500
+#define SERVO_RIGHT_MAX  950
+#define SERVO_RIGHT_MIN  1800
 // GEAR engage (servo)
 #define SERVO_GEAR_PIN  7
 #define SERVO_GEAR_MAX  359
 #define SERVO_GEAR_MIN  1500
 // SPEED Switch LOW - HIGHT  (servo)
-#define SERVO_SPEEDSW_PIN  6
+#define SERVO_SPEEDSW_PIN  5
 #define SERVO_SPEEDSW_MAX  359
 #define SERVO_SPEEDSW_MIN  1500
 // SPEED Variator (servo)
-#define SERVO_SPEED_PIN  5
-#define SERVO_SPEED_MAX  359
-#define SERVO_SPEED_MIN  1500
+#define SERVO_SPEED_PIN  6
+#define SERVO_SPEED_MAX  1900
+#define SERVO_SPEED_MIN  700
 // ACCESSORY 1  (Linear Actuator)
 #define LINEA_ACS1_PINA  43
 #define LINEA_ACS1_PINB  42
@@ -100,11 +105,6 @@ int todolist_status[10] = { 0x00,0x00,0x00,0x00,0x00 };
 bool power_is_on=false;
 bool going_forward=true;
 
-Servo myservo_LEFT;  
-Servo myservo_RIGHT;  
-Servo myservo_GEAR;  
-Servo myservo_SPEEDSW;  
-Servo myservo_SPEED;  
   
 void setup() {
   // You can use Ethernet.init(pin) to configure the CS pin
@@ -154,18 +154,19 @@ void setup() {
   pinMode(RELAY_ONOFF_PIN, OUTPUT);
   pinMode(RELAY_DIRECTION_PIN, OUTPUT);
 
-  myservo_LEFT.attach(SERVO_LEFT_PIN);  
-  myservo_RIGHT.attach(SERVO_RIGHT_PIN);  
-  myservo_GEAR.attach(SERVO_GEAR_PIN);  
-  myservo_SPEEDSW.attach(SERVO_SPEEDSW_PIN);  
-  myservo_SPEED.attach(SERVO_SPEED_PIN);  
+
+  pwm1.begin();  
+  pwm1.setPWMFreq(1600);
 
   // move servo to HOME position
-  myservo_LEFT.writeMicroseconds(SERVO_LEFT_MIN);          
-  myservo_RIGHT.writeMicroseconds(SERVO_RIGHT_MIN);          
-  myservo_GEAR.writeMicroseconds(SERVO_GEAR_MIN);          
-  myservo_SPEEDSW.writeMicroseconds(SERVO_SPEEDSW_MIN);          
-  myservo_SPEED.writeMicroseconds(SERVO_SPEED_MIN);          
+
+pwm1.setPWM(0, 0, 700);
+  
+ //  myservo_LEFT.writeMicroseconds(SERVO_LEFT_MIN);          
+ // myservo_RIGHT.writeMicroseconds(SERVO_RIGHT_MIN);          
+ // myservo_GEAR.writeMicroseconds(SERVO_GEAR_MIN);          
+ // myservo_SPEEDSW.writeMicroseconds(SERVO_SPEEDSW_MIN);          
+ // myservo_SPEED.writeMicroseconds(SERVO_SPEED_MIN);          
   
 }
 
@@ -231,23 +232,23 @@ String processCommand(String topic) {
   }
   else if (cmd=="set_servo_left")
   {
-    myservo_LEFT.writeMicroseconds(param.toInt());          
+   // myservo_LEFT.writeMicroseconds(param.toInt());          
   }
   else if (cmd=="set_servo_right")
   {
-    myservo_RIGHT.writeMicroseconds(param.toInt());          
+   // myservo_RIGHT.writeMicroseconds(param.toInt());          
   }
   else if (cmd=="set_servo_gear")
   {
-    myservo_GEAR.writeMicroseconds(param.toInt());          
+    // myservo_GEAR.writeMicroseconds(param.toInt());          
   }
   else if (cmd=="set_servo_speed")
   {
-      myservo_SPEED.writeMicroseconds(param.toInt()); 
+    //  myservo_SPEED.writeMicroseconds(param.toInt()); 
   }
   else if (cmd=="set_servo_speedswitch")
   {
-      myservo_SPEEDSW.writeMicroseconds(param.toInt());            
+    //  myservo_SPEEDSW.writeMicroseconds(param.toInt());            
   }
   else if (cmd=="set_linea_acs1_A")
   {
@@ -265,7 +266,7 @@ String processCommand(String topic) {
       todolist_param[ACTION_ACS2_B] = param.toInt();
   }
       
-  return("{\"status\":\"ok\"}");
+  return("{\"status\":\"ok\",\"value\":\"0\"}");
 }
 
 
