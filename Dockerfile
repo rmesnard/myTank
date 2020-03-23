@@ -1,6 +1,5 @@
 FROM resin/raspberrypi3-python:3.7-stretch
 
-ENV FLASK_APP run.py
 EXPOSE 5005
 
 RUN apt-get update
