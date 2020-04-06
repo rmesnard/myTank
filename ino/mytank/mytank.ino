@@ -1,59 +1,42 @@
 /*
 Mytank
-arduino ethenet controller for actuators and sensors
+arduino controller for actuators and sensors
 */
 
-#include <SPI.h>
-#include <Ethernet.h>
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
 
 
-
-#define API_KEY   "1c90a0dc-0c8c-439f-b97b-a600d67a451a"
-
 Adafruit_PWMServoDriver pwm1 = Adafruit_PWMServoDriver(0x40);
 
-// Enter a MAC address and IP address for your controller below.
-// The IP address will be dependent on your local network.
-// gateway and subnet are optional:
-byte mac[] = {
-  0x00, 0xAA, 0xBB, 0xCC, 0xDE, 0x02
-};
-IPAddress ip(192, 168, 2, 150);
-IPAddress myDns(192, 168, 2, 1);
-IPAddress gateway(192, 168, 2, 1);
-IPAddress subnet(255, 255, 0, 0);
-
-EthernetServer server(80);
-boolean debug = true;
-unsigned long beatime = 0;
 unsigned long mytime;
-
 
 byte todolist_action[10] = { 0x00,0x00,0x00,0x00,0x00 };
 int todolist_param[10] = { 0x00,0x00,0x00,0x00,0x00 };
-int todolist_status[10] = { 0x00,0x00,0x00,0x00,0x00 };
+int todolist_time[10] = { 0x00,0x00,0x00,0x00,0x00 };
+
 
 // Action ARRAY
 //
-#define ACTION_MOVE     0
-#define ACTION_SPEED    1
-#define ACTION_ACS1     2    //  Accesory 1  ( Main linear actuator )
-#define ACTION_ACS2_A   3    //  Accesory 2  ( Linear actuator A )
-#define ACTION_ACS2_B   4    //  Accesory 2  ( Linear actuator B )
+#define ACTION_MOVE       0
+#define ACTION_DIRECTION  1
+#define ACTION_ACS1       2    //  Accesory 1  ( Main linear actuator )
+#define ACTION_ACS2_A     3    //  Accesory 2  ( Linear actuator A )
+#define ACTION_ACS2_B     4    //  Accesory 2  ( Linear actuator B )
 
-#define ACTION_STOP     1
-#define ACTION_FORWARD  2
-#define ACTION_BACCWARD 3
+#define ACTION_STOP       0
+#define ACTION_FORWARD    2
+#define ACTION_BACKWARD   3
+#define ACTION_TURN_RIGHT 4
+#define ACTION_TURN_LEFT  5
+
 
 #define ACTION_UP     2    
 #define ACTION_DOWN   3    
 
 #define ACTION_SERVO_LEFT     1    
 #define ACTION_SERVO_RIGHT    2
-#define ACTION_SERVO_GEAR     3
-#define ACTION_SERVO_SPEED    4
+
 #define ACTION_SERVO_SPEEDSW  5
 #define ACTION_VERIN1_UP      6
 #define ACTION_VERIN2_UP      7
@@ -65,208 +48,309 @@ int todolist_status[10] = { 0x00,0x00,0x00,0x00,0x00 };
 // Hardware
 //
 // PWM 0 a 13
-// Ethernet Use 10,11,12,13
 
 // LEFT brake (servo)
-#define SERVO_LEFT_PIN  9
-#define SERVO_LEFT_MAX  1900
-#define SERVO_LEFT_MIN  1000
+#define SERVO_LEFT_PIN  1
+#define SERVO_LEFT_MAX  370
+#define SERVO_LEFT_MIN  150
 // RIGHT brake (servo)
-#define SERVO_RIGHT_PIN  8
-#define SERVO_RIGHT_MAX  950
-#define SERVO_RIGHT_MIN  1800
+#define SERVO_RIGHT_PIN  2
+#define SERVO_RIGHT_MAX  330
+#define SERVO_RIGHT_MIN  550
 // GEAR engage (servo)
-#define SERVO_GEAR_PIN  7
-#define SERVO_GEAR_MAX  359
-#define SERVO_GEAR_MIN  1500
-// SPEED Switch LOW - HIGHT  (servo)
-#define SERVO_SPEEDSW_PIN  5
-#define SERVO_SPEEDSW_MAX  359
-#define SERVO_SPEEDSW_MIN  1500
+#define SERVO_GEAR_PIN  3
+#define SERVO_GEAR_MAX  550
+#define SERVO_GEAR_MIN  150
 // SPEED Variator (servo)
-#define SERVO_SPEED_PIN  6
-#define SERVO_SPEED_MAX  1900
-#define SERVO_SPEED_MIN  700
+#define SERVO_SPEED_PIN  0
+#define SERVO_SPEED_MAX  550
+#define SERVO_SPEED_MIN  150
+// SPEED Switch LOW - HIGHT  (motor)
+#define MOTOR_SPEEDSW_PINA  37
+#define MOTOR_SPEEDSW_PINB  36
+// RFU  (motor)
+#define MOTOR_RFU_PINA  35
+#define MOTOR_RFU_PINB  34
 // ACCESSORY 1  (Linear Actuator)
 #define LINEA_ACS1_PINA  43
 #define LINEA_ACS1_PINB  42
 // ACCESSORY 2  (Linear Actuator A)
 #define LINEA_ACS2_PINA  41
 #define LINEA_ACS2_PINB  40
+#define LINEB_ACS2_TIME  3000
 #define LINEB_ACS2_PINA  39
 #define LINEB_ACS2_PINB  38
 #define LINEA_ACS2_TIME  3000
-#define LINEA_ACS2_TIME  3000
+// CONTACT ON OFF General (key)
+#define RELAY_POWER_PIN     30
 // FORWARD - BACKWARD (relay default forward)
-#define RELAY_DIRECTION_PIN 45
-// CONTACT ON OFF 
-#define RELAY_ONOFF_PIN     44
+#define RELAY_DIRECTION_PIN 31
+// CONTACT ON OFF sur Gear Bx
+#define RELAY_GEAR_PIN     32
+// CONTACT RFU RELAY
+#define RELAY_RFU_PIN     33
+
+#define IDLE_TIME         5000
 
 bool power_is_on=false;
+bool gear_is_on=false;
 bool going_forward=true;
+int speedpercent=0;
 
+bool stringComplete=false;
+String serialcommand=""; 
+int serialcommandLen =0;
+bool datachange = true;
+String currmsg ="ok";
   
 void setup() {
-  // You can use Ethernet.init(pin) to configure the CS pin
-  //Ethernet.init(10);  // Most Arduino shields
 
   // Open serial communications and wait for port to open:
 
-  if (debug)
-  {
-    Serial.begin(9600);
-    while (!Serial) {
-    ; // wait for serial port to connect. Needed for native USB port only
-    }
+  Serial.begin(115200);
+  while (!Serial) {
+  ; // wait for serial port to connect. Needed for native USB port only
   }
-
-  // start the Ethernet connection:
-  if (debug)
-    Serial.println("Trying to get an IP address using DHCP");
-  if (Ethernet.begin(mac) == 0) {
-    if (debug)
-      Serial.println("Failed to configure Ethernet using DHCP");
-    // Check for Ethernet hardware present
-    if (Ethernet.hardwareStatus() == EthernetNoHardware) {
-      if (debug)
-        Serial.println("Ethernet shield was not found.  Sorry, can't run without hardware. :(");
-      while (true) {
-        delay(1); // do nothing, no point running without Ethernet hardware
-      }
-    }
-    if (Ethernet.linkStatus() == LinkOFF) {
-      if (debug)
-        Serial.println("Ethernet cable is not connected.");
-    }
-    // initialize the Ethernet device not using DHCP:
-    Ethernet.begin(mac, ip, myDns, gateway, subnet);
-  }
-  // print your local IP address:
-  if (debug) 
-  {
-    Serial.print("My IP address: ");
-    Serial.println(Ethernet.localIP());
-  }
-  // start listening for clients
-  server.begin();
 
   // Setup Hardware
-  pinMode(RELAY_ONOFF_PIN, OUTPUT);
+  pinMode(RELAY_POWER_PIN, OUTPUT);
   pinMode(RELAY_DIRECTION_PIN, OUTPUT);
+  pinMode(RELAY_GEAR_PIN, OUTPUT);
+  pinMode(RELAY_RFU_PIN, OUTPUT);
 
+  digitalWrite(RELAY_POWER_PIN, LOW);
+  digitalWrite(RELAY_DIRECTION_PIN, LOW);
+  digitalWrite(RELAY_GEAR_PIN, LOW);
+  digitalWrite(RELAY_RFU_PIN, LOW);
 
+  pinMode(MOTOR_SPEEDSW_PINA, OUTPUT);
+  pinMode(MOTOR_SPEEDSW_PINB, OUTPUT);
+  pinMode(MOTOR_RFU_PINA, OUTPUT);
+  pinMode(MOTOR_RFU_PINB, OUTPUT);
+
+  digitalWrite(MOTOR_SPEEDSW_PINA, LOW);
+  digitalWrite(MOTOR_SPEEDSW_PINB, LOW);
+  digitalWrite(MOTOR_RFU_PINA, LOW);
+  digitalWrite(MOTOR_RFU_PINB, LOW);
+
+  pinMode(LINEA_ACS1_PINA, OUTPUT);
+  pinMode(LINEA_ACS1_PINB, OUTPUT);
+  digitalWrite(LINEA_ACS1_PINA, LOW);
+  digitalWrite(LINEA_ACS1_PINB, LOW);
+ 
+  pinMode(LINEA_ACS2_PINA, OUTPUT);
+  pinMode(LINEA_ACS2_PINB, OUTPUT);
+  digitalWrite(LINEA_ACS2_PINA, LOW);
+  digitalWrite(LINEA_ACS2_PINB, LOW);
+
+  pinMode(LINEB_ACS2_PINA, OUTPUT);
+  pinMode(LINEB_ACS2_PINB, OUTPUT);
+  digitalWrite(LINEB_ACS2_PINA, LOW);
+  digitalWrite(LINEB_ACS2_PINB, LOW);
+
+  pinMode(LINEB_ACS2_PINA, OUTPUT);
+  pinMode(LINEB_ACS2_PINB, OUTPUT);
+  digitalWrite(LINEB_ACS2_PINA, LOW);
+  digitalWrite(LINEB_ACS2_PINB, LOW);
+  
   pwm1.begin();  
-  pwm1.setPWMFreq(1600);
+  pwm1.setPWMFreq(60);
 
   // move servo to HOME position
+ pwm1.setPWM(SERVO_SPEED_PIN, 0, SERVO_SPEED_MIN);
+ pwm1.setPWM(SERVO_LEFT_PIN, 0, SERVO_LEFT_MIN);
+ pwm1.setPWM(SERVO_RIGHT_PIN, 0, SERVO_RIGHT_MIN);     
+ pwm1.setPWM(SERVO_GEAR_PIN, 0, SERVO_GEAR_MIN);     
 
-pwm1.setPWM(0, 0, 700);
-  
- //  myservo_LEFT.writeMicroseconds(SERVO_LEFT_MIN);          
- // myservo_RIGHT.writeMicroseconds(SERVO_RIGHT_MIN);          
- // myservo_GEAR.writeMicroseconds(SERVO_GEAR_MIN);          
- // myservo_SPEEDSW.writeMicroseconds(SERVO_SPEEDSW_MIN);          
- // myservo_SPEED.writeMicroseconds(SERVO_SPEED_MIN);          
   
 }
 
+void set_speed(int percent)
+{
+    int myspeed = map(percent,0,100,SERVO_SPEED_MIN,SERVO_SPEED_MAX);
+    pwm1.setPWM(SERVO_SPEED_PIN, 0, myspeed);
+    speedpercent = percent;
+}
+
+void set_gear(bool isOn)
+{
+  if ( isOn )
+  {
+    pwm1.setPWM(SERVO_GEAR_PIN, 0, SERVO_GEAR_MAX);
+    digitalWrite(RELAY_GEAR_PIN, HIGH);
+  }
+  else
+  {
+    pwm1.setPWM(SERVO_GEAR_PIN, 0, SERVO_GEAR_MIN);
+    digitalWrite(RELAY_GEAR_PIN, LOW);
+  }
+  gear_is_on =isOn;
+}
 
 
-String processCommand(String topic) {
-  if (debug)
-    Serial.println(topic);
+void processCommand() {
+  int offset =0;
+  String mycmd="";
+  String myparamA="";
+  String myparamB="";
+  char mychar;
 
-  int startcmd = topic.indexOf('=');
-  int endcmd = topic.indexOf('&',startcmd);
-  String cmd = topic.substring(startcmd+1,endcmd);
+  while (offset < serialcommandLen)
+  {
+    if ( serialcommand.charAt(offset++) == '>')
+      break;
+  }
+  
+  while (offset < serialcommandLen)
+  {
+    mychar= serialcommand.charAt(offset++); 
+    if ( mychar == ':')
+      break;
+    mycmd+= mychar;
+  }
+  
+  while(offset < serialcommandLen)
+  {
+    mychar= serialcommand.charAt(offset++);
+    if ( mychar == ':')
+      break;
+    myparamA+= mychar;
+  }
 
-  if ( String(API_KEY) != cmd )
-      return("{\"status\":\"not authorized\"}");
-      
-  startcmd = topic.indexOf('=',endcmd);
-  endcmd = topic.indexOf('&',startcmd);
-  cmd = topic.substring(startcmd+1,endcmd);
-      
-  startcmd = topic.indexOf('=',endcmd);
-  String param = topic.substring(startcmd+1);
-
-  if (cmd=="forward")
+  while(offset < serialcommandLen)
+  {
+    mychar= serialcommand.charAt(offset++);
+    if ( mychar == '.')
+      break;
+    myparamB+= mychar;
+  }
+  
+  if (mycmd=="forward")
   {
       todolist_action[ACTION_MOVE] = ACTION_FORWARD;
-      todolist_param[ACTION_MOVE] = param.toInt();
+      todolist_param[ACTION_MOVE] = myparamA.toInt();   // Set speed
+      todolist_time[ACTION_MOVE] = myparamB.toInt();    // Set duration
   }
-  else if (cmd=="backward")
+  else if (mycmd=="backward")
   {
-      todolist_action[ACTION_MOVE] = ACTION_BACCWARD;
-      todolist_param[ACTION_MOVE] = param.toInt();
+      todolist_action[ACTION_MOVE] = ACTION_BACKWARD;
+      todolist_param[ACTION_MOVE] = myparamA.toInt();   // Set speed
+      todolist_time[ACTION_MOVE] = myparamB.toInt();    // Set duration
   }
-  else if (cmd=="stop")
+  else if (mycmd=="left")
+  {
+      todolist_action[ACTION_DIRECTION] = ACTION_TURN_LEFT;
+      todolist_param[ACTION_DIRECTION] = myparamA.toInt();   // Set minimum speed
+      todolist_time[ACTION_DIRECTION] = myparamB.toInt();    // Set duration
+  }
+  else if (mycmd=="right")
+  {
+      todolist_action[ACTION_DIRECTION] = ACTION_TURN_RIGHT;
+      todolist_param[ACTION_DIRECTION] = myparamA.toInt();   // Set minimum speed
+      todolist_time[ACTION_DIRECTION] = myparamB.toInt();    // Set duration
+  }
+  else if (mycmd=="stop")
   {
       todolist_action[ACTION_MOVE] = ACTION_STOP;
       todolist_param[ACTION_MOVE] = 0;
+      todolist_time[ACTION_MOVE] = 0; 
+      set_speed(0);
+      set_gear(false);
   }
-  else if (cmd=="mainup")
+  else if (mycmd=="mainup")
   {
       todolist_action[ACTION_ACS1] = ACTION_UP;
-      todolist_param[ACTION_ACS1] = param.toInt();
+      todolist_param[ACTION_ACS1] = myparamA.toInt();
   }
-  else if (cmd=="maindown")
+  else if (mycmd=="maindown")
   {
       todolist_action[ACTION_ACS1] = ACTION_DOWN;
-      todolist_param[ACTION_ACS1] = param.toInt();
+      todolist_param[ACTION_ACS1] = myparamA.toInt();
   }
-  else if (cmd=="power")
+  else if (mycmd=="power")
   {
-    if( param=="ON")
+    if( myparamA=="on")
     { 
-      digitalWrite(RELAY_ONOFF_PIN, HIGH);
+      digitalWrite(RELAY_POWER_PIN, HIGH);
       power_is_on=true;
-      return("{\"status\":\"power\",\"value\":\"on\"}");
+      currmsg="ok";
     }
-    else if( param=="OFF")
+    else if( myparamA=="off")
     { 
-      digitalWrite(RELAY_ONOFF_PIN, LOW);
+      digitalWrite(RELAY_POWER_PIN, LOW);
       power_is_on=false;
-      return("{\"status\":\"power\",\"value\":\"off\"}");
+      currmsg="ok";
     }
   }
-  else if (cmd=="set_servo_left")
+  else if (mycmd=="gear")
   {
-   // myservo_LEFT.writeMicroseconds(param.toInt());          
-  }
-  else if (cmd=="set_servo_right")
+    if( myparamA=="on")
+    { 
+      pwm1.setPWM(SERVO_GEAR_PIN, 0, SERVO_GEAR_MAX);
+      gear_is_on=true;
+      currmsg="ok_gear_on";
+    }
+    else if( myparamA=="off")
+    { 
+      pwm1.setPWM(SERVO_GEAR_PIN, 0, SERVO_GEAR_MIN);
+      gear_is_on=false;
+      currmsg="ok_gear_off";
+    }
+  }  
+  else if (mycmd=="speed")
   {
-   // myservo_RIGHT.writeMicroseconds(param.toInt());          
-  }
-  else if (cmd=="set_servo_gear")
+    set_speed(myparamA.toInt());
+    currmsg="ok_speed";
+  }  
+  else if (mycmd=="set_servo_left")
   {
-    // myservo_GEAR.writeMicroseconds(param.toInt());          
+    Serial.print("debug set_servo_left : ");
+    Serial.println(myparamA.toInt());
+    pwm1.setPWM(SERVO_LEFT_PIN, 0, myparamA.toInt());
+    
+    currmsg="ok_set_servo_left";
   }
-  else if (cmd=="set_servo_speed")
+  else if (mycmd=="set_servo_right")
   {
-    //  myservo_SPEED.writeMicroseconds(param.toInt()); 
+    Serial.print("debug set_servo_right : ");
+    Serial.println(myparamA.toInt());
+    pwm1.setPWM(SERVO_RIGHT_PIN, 0, myparamA.toInt());
+    
+    currmsg="ok_set_servo_right"; 
   }
-  else if (cmd=="set_servo_speedswitch")
+  else if (mycmd=="set_servo_gear")
   {
-    //  myservo_SPEEDSW.writeMicroseconds(param.toInt());            
+    Serial.print("debug set_servo_gear : ");
+    Serial.println(myparamA.toInt());
+    pwm1.setPWM(SERVO_GEAR_PIN, 0, myparamA.toInt());
+    
+    currmsg="ok_set_servo_gear";      
   }
-  else if (cmd=="set_linea_acs1_A")
+  else if (mycmd=="set_servo_speed")
+  {
+    Serial.print("debug speed : ");
+    Serial.println(myparamA);
+    pwm1.setPWM(SERVO_SPEED_PIN, 0, myparamA.toInt());
+    
+    currmsg="ok_set_servo_speed";
+  }
+  else if (mycmd=="set_linea_acs1_A")
   {
       todolist_action[ACTION_ACS1] = HIGH;
-      todolist_param[ACTION_ACS1] = param.toInt();
+      todolist_param[ACTION_ACS1] = myparamA.toInt();
   }
-  else if (cmd=="set_linea_acs2_A")
+  else if (mycmd=="set_linea_acs2_A")
   {
       todolist_action[ACTION_ACS2_A] = HIGH;
-      todolist_param[ACTION_ACS2_A] = param.toInt();
+      todolist_param[ACTION_ACS2_A] = myparamA.toInt();
   }
-  else if (cmd=="set_linea_acs2_B")
+  else if (mycmd=="set_linea_acs2_B")
   {
       todolist_action[ACTION_ACS2_B] = HIGH;
-      todolist_param[ACTION_ACS2_B] = param.toInt();
+      todolist_param[ACTION_ACS2_B] = myparamA.toInt();
   }
-      
-  return("{\"status\":\"ok\",\"value\":\"0\"}");
+  
+  datachange=true;    
 }
 
 
@@ -281,71 +365,210 @@ else
 
 }
 
-
 void checkTodoList() {
 
+  // Do moves
+  do_moves();
+
 }
+
+void do_reverse(bool newdirection)
+{
+  if ( going_forward != newdirection )
+  {
+    set_gear(false);
+    set_speed(0);
+    delay(500); // time to stop before reverse
+    if ( newdirection )
+      digitalWrite(RELAY_DIRECTION_PIN, LOW);  // default relay position is forward
+    else
+      digitalWrite(RELAY_DIRECTION_PIN, HIGH);
+    set_gear(true);
+    going_forward=newdirection;
+  }
+  else
+    set_gear(true);
+}
+
+void brake_left(bool goleft)
+{
+  if ( goleft )
+    pwm1.setPWM(SERVO_LEFT_PIN, 0, SERVO_LEFT_MAX);
+  else
+    pwm1.setPWM(SERVO_LEFT_PIN, 0, SERVO_LEFT_MIN);
+}
+
+void brake_right(bool goright)
+{
+  if ( goright )
+    pwm1.setPWM(SERVO_RIGHT_PIN, 0, SERVO_RIGHT_MAX);
+  else
+    pwm1.setPWM(SERVO_RIGHT_PIN, 0, SERVO_RIGHT_MIN);
+}
+
+void engage(int newspeed)
+{
+  if ( !gear_is_on )
+    set_gear(true);
+  if ( speedpercent == 0 )    
+    set_speed(newspeed);
+}
+
+void do_moves()
+{
+  byte myaction = todolist_action[ACTION_MOVE];
+  
+  bool dobrake = true;
+  
+  if ( myaction == ACTION_FORWARD )
+  {
+    do_reverse(true);
+    brake_left(false);
+    brake_right(false);
+    set_speed(todolist_param[ACTION_MOVE]);
+  }
+  if ( myaction == ACTION_BACKWARD )
+  {
+    do_reverse(false);
+    brake_left(false);
+    brake_right(false);
+    set_speed(todolist_param[ACTION_MOVE]);
+  }
+
+  if ( myaction != 0 )
+  {
+    int todotime = todolist_time[ACTION_MOVE];
+    todotime = todotime - (int)timeSpend();
+    if ( todotime < 0 )
+    {
+      todotime=0;
+      todolist_action[ACTION_MOVE]=0;
+      dobrake = true;
+      todolist_time[ACTION_MOVE] = IDLE_TIME;
+    }
+    else
+    {
+      dobrake = false;
+      todolist_time[ACTION_MOVE] = todotime;
+    }
+  }
+
+  myaction = todolist_action[ACTION_DIRECTION];
+
+  if ( myaction == ACTION_TURN_LEFT )
+  {
+    engage(todolist_param[ACTION_DIRECTION]);
+    brake_right(false);
+    brake_left(true);
+  }
+  if ( myaction == ACTION_TURN_RIGHT )
+  {
+    engage(todolist_param[ACTION_DIRECTION]);
+    brake_right(true);
+    brake_left(false);
+  }
+
+  if ( myaction != 0 )
+  {
+    int todotime = todolist_time[ACTION_DIRECTION];
+    todotime = todotime - (int)timeSpend();
+    if ( todotime < 0 )
+    {
+      todotime=0;
+      todolist_action[ACTION_DIRECTION]=0;
+      myaction=0;
+    }
+    todolist_time[ACTION_DIRECTION] = todotime;
+  }
+  
+  if ( myaction == 0 )
+  {
+      if ( dobrake )
+      {
+      brake_left(true);
+      brake_right(true);
+      }
+      else
+      {
+      brake_left(false);
+      brake_right(false);
+      }
+  }
+  
+  byte idle = todolist_action[ACTION_MOVE] + todolist_action[ACTION_DIRECTION];
+
+  if ( idle == 0 )
+  {
+    int todotime = todolist_time[ACTION_MOVE];
+    todotime = todotime - (int)timeSpend();
+    if ( todotime < 0 )
+    {
+      todotime=0;
+      set_speed(0);
+      set_gear(false);
+    }
+    todolist_time[ACTION_MOVE] = todotime;
+  }
+  
+}
+
 
 void checkSensors() {
 
 }
 
 
-void heartBeat() {
-      if (debug)
-        Serial.println("  * heartbeat *");
-}
+void sendSensors()
+{
 
+  Serial.print("{\"id\":\"CORE\"");
+
+  Serial.print(",\"status\":\"");
+  Serial.print(currmsg);
+  Serial.print("\",\"speed\":");
+  Serial.print(speedpercent);
+  if ( power_is_on )
+    Serial.print(",\"power\":\"on\"");
+  else
+    Serial.print(",\"power\":\"off\"");
+  if ( gear_is_on )
+    Serial.print(",\"gear\":\"on\"");
+  else
+    Serial.print(",\"gear\":\"off\"");
+
+  Serial.println("} ");
+  datachange = false;
+}
 
 void loop() {
   mytime = millis();
-  char thisChar = 0x0D;
-  String command=""; 
 
-  // wait for a new client:
-  EthernetClient client = server.available();
-
-  // when the client sends the first byte, say hello:
-  if (client) {
-      while (client.connected()) {
-        if (client.available()) {
-          char c = client.read();
-          //Serial.write(c);
-          command+=c;  
-          if (c == '\n' ) 
-            command="";
-        }
-        else
-        {
-          String result="{\"status\":\"what\"}";
-          if (command.startsWith("apikey=")) 
-            result = processCommand(command);
-          client.println("HTTP/1.1 200 OK");
-          client.println("Content-Type: application/json");
-          client.println("Connection: close");  // the connection will be closed after completion of the response
-          client.println();
-          client.println(result);
-          break;          
-        }
-      }                
-    
-    delay(1);
-    // close the connection:
-    client.stop();
-    }
-    Ethernet.maintain();
-
-    delay(2);
+  delay(100);
 
   checkTodoList();
-
   checkSensors();
 
-  beatime += timeSpend();
-  
-  if ( beatime > 3000 ) {
-    heartBeat();
-    beatime=0;
+  if (datachange)
+    sendSensors();
+
+  while (Serial.available()) {
+    char inChar = (char)Serial.read();
+    if ( serialcommandLen < 100 )
+    {
+    serialcommand += inChar;
+    serialcommandLen++;
+    }
+    if (inChar == '.') {
+      stringComplete = true;
+    }
   }
+
+   if ( stringComplete )
+   {
+    processCommand();
+    serialcommand="";
+    serialcommandLen=0;
+    stringComplete=false;
+   }
     
 }
