@@ -1,4 +1,8 @@
 
+#include <FastLED.h>
+
+FASTLED_USING_NAMESPACE
+
 /*
 Information obtained:
 16 bits total not including start 
@@ -38,6 +42,51 @@ String currmsg ="";
 int safetystopA = 0;
 int safetystopB = 0;
 
+bool stringComplete=false;
+String serialcommand=""; 
+int serialcommandLen =0;
+
+#define DATA_PIN    4
+#define LED_TYPE    WS2812
+#define COLOR_ORDER GRB
+#define NUM_LEDS    256
+#define NUM_PANEL   4
+CRGB leds[NUM_LEDS];
+#define BRIGHTNESS          50
+uint8_t gHue = 0; // rotating "base color" used by many of the patterns
+bool gphase=true;
+byte motifselected[NUM_PANEL];
+byte animselected[NUM_PANEL];
+byte colorselected[NUM_PANEL];
+
+#define ANIM_NONE     0
+#define ANIM_BLINK    1
+#define ANIM_MOVE     2
+
+#define MOTIF_NONE          0
+#define MOTIF_FULL          1
+#define MOTIF_LARROW_A      2
+#define MOTIF_LARROW_B      3
+#define MOTIF_RARROW_A      4
+#define MOTIF_RARROW_B      5
+
+#define COLOR_ORANGE        2
+#define COLOR_RED           3
+#define COLOR_BLUE          4
+#define COLOR_GREEN         5
+#define COLOR_WHITE         6
+#define COLOR_PINK          7
+
+
+
+const PROGMEM char motifTable[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,   // MOTIF_NONE
+                                    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,   // MOTIF_FULL   
+                                    0x18, 0x3C, 0x7E, 0xFF, 0x18, 0x18, 0x18, 0x18,   // MOTIF_LARROW_A
+                                    0x00, 0x00, 0x00, 0x00, 0x18, 0x3C, 0x7E, 0xFF,   // MOTIF_LARROW_B
+                                    0x18, 0x18, 0x18, 0x18, 0xFF, 0x7E, 0x3C, 0x18,   // MOTIF_RARROW_A
+                                    0xFF, 0x7E, 0x3C, 0x18, 0x00, 0x00, 0x00, 0x00,   // MOTIF_RARROW_B
+                                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+
 void setup()
 {
 pinMode(pin, INPUT);
@@ -45,16 +94,90 @@ pinMode(pinStopA, INPUT);
 pinMode(pinStopB, INPUT);
 pinMode(greenPin, OUTPUT);
 
+for ( int i=0; i< NUM_PANEL; i++)
+  {
+  animselected[i]=ANIM_NONE;
+  motifselected[i]=MOTIF_NONE;
+  }
+
 // enable 4 rear and 2 front sensors by default
 digitalWrite(greenPin, LOW);
 
 // enable 4 front sensors
 //digitalWrite(greenPin, HIGH);
 
+FastLED.addLeds<LED_TYPE,DATA_PIN,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+FastLED.setBrightness(BRIGHTNESS);
+
 Serial.begin(115200);
 currmsg="STARTED";
 sendSensors();
+
+led_display(COLOR_BLUE,0,MOTIF_FULL);
+delay(300);
+led_display(COLOR_BLUE,1,MOTIF_FULL);
+delay(300);
+led_display(COLOR_BLUE,2,MOTIF_FULL);
+delay(300);
+led_display(COLOR_BLUE,3,MOTIF_FULL);
+delay(1000);
+FastLED.clear();
+FastLED.show();
+
 }
+
+void led_print(int startled,CRGB mycolor,byte motifidx)
+{
+    int x,y;
+    byte set;
+    byte thebit;
+    int pixelnum=startled;
+
+    for (x=0; x < 8; x++) {
+        for (y=0; y < 8; y++) {
+            thebit = pgm_read_byte_near(motifTable + ( motifidx * 8 ) + x );
+            set = thebit & 1 << y;
+            if ( set != 0 )
+              leds[pixelnum]=mycolor;
+            else
+              leds[pixelnum]=CRGB::Black;
+            pixelnum++;
+        }
+    }
+}
+
+
+void led_display(byte selcolor,byte panelNum,byte motif)
+{
+  CRGB mycolor;
+  if ( selcolor == COLOR_ORANGE )
+    mycolor = CRGB::Orange;
+  if ( selcolor == COLOR_RED )
+    mycolor = CRGB::Red;
+  if ( selcolor == COLOR_BLUE )
+    mycolor = CRGB::Blue;
+  if ( selcolor == COLOR_WHITE )
+    mycolor = CRGB::White;
+  if ( selcolor == COLOR_PINK )
+    mycolor = CRGB::Pink;
+  
+  int startpanel = panelNum*64;
+     
+  led_print(startpanel,mycolor,motif);
+    
+  FastLED.show();
+}
+
+
+void led_clear(byte panelNum)
+{
+  int startpanel = panelNum*64;
+  int endpanel = (panelNum + 1)*64;
+  for ( int iled = startpanel ;iled < endpanel; iled++ ) 
+    leds[iled] = CRGB::Black;
+  FastLED.show();
+}
+
 
 void setDistance(byte sensorIdx,byte newdistance)
 {
@@ -93,7 +216,6 @@ void sendSensors()
     Serial.print(distances[i]);
     
   }
-
 
   Serial.println("} ");
   datachange = false;
@@ -193,6 +315,125 @@ void readSensors()
       processCMD();
     }
   }
+  
+void processSERIAL()
+{
+
+    int offset =0;
+    String mycmd="";
+    String myparamA="";
+    String myparamB="";
+    String myparamC="";
+    String myparamD="";
+    char mychar;
+  
+    while (offset < serialcommandLen)
+    {
+      if ( serialcommand.charAt(offset++) == '>')
+        break;
+    }
+    
+    while (offset < serialcommandLen)
+    {
+      mychar= serialcommand.charAt(offset++); 
+      if ( mychar == ':')
+        break;
+      mycmd+= mychar;
+    }
+
+    while(offset < serialcommandLen)
+    {
+      mychar= serialcommand.charAt(offset++);
+      if ( mychar == ':')
+        break;
+      myparamA+= mychar;
+    }
+
+    while(offset < serialcommandLen)
+    {
+      mychar= serialcommand.charAt(offset++);
+      if ( mychar == ':')
+        break;
+      myparamB+= mychar;
+    }
+
+    while(offset < serialcommandLen)
+    {
+      mychar= serialcommand.charAt(offset++);
+      if ( mychar == ':')
+        break;
+      myparamC+= mychar;
+    }
+    
+    while(offset < serialcommandLen)
+    {
+      mychar= serialcommand.charAt(offset++);
+      if ( mychar == '.')
+        break;
+      myparamD+= mychar;
+    }
+  
+    if (mycmd=="backward") {
+      // Backward
+      // enable 4 rear sensors
+      isforward=false;
+      digitalWrite(greenPin, HIGH);
+      sendSensors();
+    }
+    if (mycmd=="forward") {
+      // Forward
+      // enable 4 front and 2 front sensors
+      isforward=true;
+      digitalWrite(greenPin, LOW);
+      sendSensors();
+    }
+    if (mycmd == "led") {
+      byte numpanel = byte(myparamA.toInt());
+      byte motif = byte(myparamB.toInt());
+      if ( motif != MOTIF_NONE ){
+        byte anim = byte(myparamC.toInt());
+        byte color = byte(myparamD.toInt());
+        animselected[numpanel]=anim;
+        motifselected[numpanel]=motif;
+        colorselected[numpanel]=color;
+        }
+      else
+        {
+        animselected[numpanel]=ANIM_NONE;
+        motifselected[numpanel]=MOTIF_NONE;
+        colorselected[numpanel]=0;
+        led_clear(numpanel);
+        }
+    }
+}
+
+void AnimLeds()
+{
+
+for ( byte i=0; i< NUM_PANEL; i++)
+  {
+    if (( animselected[i] == ANIM_BLINK ) &  (gphase) )
+      {
+        led_clear(i);
+      }
+    else if (( animselected[i] == ANIM_MOVE ) &  (gphase) )
+      {
+        motifselected[i]++; 
+        led_display(colorselected[i],i,motifselected[i]);
+        motifselected[i]--;        
+      }      
+    else 
+    {
+        led_display(colorselected[i],i,motifselected[i]);
+    }   
+  }
+
+if (  gphase  )
+  gphase=false;
+else
+ gphase=true;
+  
+}
 
 void loop(){
   
@@ -220,24 +461,27 @@ void loop(){
   if (datachange)
     sendSensors();
 
-  while (Serial.available() > 0) {
-    // look for commands
-    char rcvcmd = Serial.read();
-    if ( rcvcmd == 'B') {
-      // Backward
-      // enable 4 rear sensors
-      isforward=false;
-      digitalWrite(greenPin, HIGH);
-      sendSensors();
+
+  while (Serial.available()) {
+    char inChar = (char)Serial.read();
+    if ( serialcommandLen < 50 )
+    {
+    serialcommand += inChar;
+    serialcommandLen++;
     }
-    if ( rcvcmd == 'F') {
-      // Forward
-      // enable 4 front and 2 front sensors
-      isforward=true;
-      digitalWrite(greenPin, LOW);
-      sendSensors();
+    if (inChar == '.') {
+      stringComplete = true;
     }
   }
-      
+
+   if ( stringComplete )
+   {
+    processSERIAL();
+    serialcommand="";
+    serialcommandLen=0;
+    stringComplete=false;
+   }
+
+  AnimLeds();  
 
 }

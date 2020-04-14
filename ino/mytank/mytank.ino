@@ -47,14 +47,16 @@ int todolist_time[10] = { 0x00,0x00,0x00,0x00,0x00 };
 
 // Hardware
 //
-// PWM 0 a 13
+// PWM Servo  Library
+//  SDA 20
+//  SCL 21
 
 // LEFT brake (servo)
-#define SERVO_LEFT_PIN  1
+#define SERVO_LEFT_PIN  0
 #define SERVO_LEFT_MAX  370
 #define SERVO_LEFT_MIN  150
 // RIGHT brake (servo)
-#define SERVO_RIGHT_PIN  2
+#define SERVO_RIGHT_PIN  1
 #define SERVO_RIGHT_MAX  330
 #define SERVO_RIGHT_MIN  550
 // GEAR engage (servo)
@@ -62,18 +64,18 @@ int todolist_time[10] = { 0x00,0x00,0x00,0x00,0x00 };
 #define SERVO_GEAR_MAX  550
 #define SERVO_GEAR_MIN  150
 // SPEED Variator (servo)
-#define SERVO_SPEED_PIN  0
+#define SERVO_SPEED_PIN  5
 #define SERVO_SPEED_MAX  550
 #define SERVO_SPEED_MIN  150
 // SPEED Switch LOW - HIGHT  (motor)
-#define MOTOR_SPEEDSW_PINA  37
-#define MOTOR_SPEEDSW_PINB  36
+#define MOTOR_SPEEDSW_PINA  42
+#define MOTOR_SPEEDSW_PINB  43
 // RFU  (motor)
-#define MOTOR_RFU_PINA  35
-#define MOTOR_RFU_PINB  34
+#define MOTOR_RFU_PINA  44
+#define MOTOR_RFU_PINB  45
 // ACCESSORY 1  (Linear Actuator)
-#define LINEA_ACS1_PINA  43
-#define LINEA_ACS1_PINB  42
+#define LINEA_ACS1_PINA  35
+#define LINEA_ACS1_PINB  34
 // ACCESSORY 2  (Linear Actuator A)
 #define LINEA_ACS2_PINA  41
 #define LINEA_ACS2_PINB  40
@@ -81,14 +83,18 @@ int todolist_time[10] = { 0x00,0x00,0x00,0x00,0x00 };
 #define LINEB_ACS2_PINA  39
 #define LINEB_ACS2_PINB  38
 #define LINEA_ACS2_TIME  3000
+// ACCESSORY RFU  (Linear Actuator)
+#define LINEA_RFU_PINA  37
+#define LINEA_RFU_PINB  36
+
 // CONTACT ON OFF General (key)
-#define RELAY_POWER_PIN     30
+#define RELAY_POWER_PIN     33
 // FORWARD - BACKWARD (relay default forward)
-#define RELAY_DIRECTION_PIN 31
+#define RELAY_DIRECTION_PIN 32
 // CONTACT ON OFF sur Gear Bx
-#define RELAY_GEAR_PIN     32
+#define RELAY_GEAR_PIN     31
 // CONTACT RFU RELAY
-#define RELAY_RFU_PIN     33
+#define RELAY_RFU_PIN     30
 
 #define IDLE_TIME         5000
 
@@ -118,10 +124,10 @@ void setup() {
   pinMode(RELAY_GEAR_PIN, OUTPUT);
   pinMode(RELAY_RFU_PIN, OUTPUT);
 
-  digitalWrite(RELAY_POWER_PIN, LOW);
-  digitalWrite(RELAY_DIRECTION_PIN, LOW);
-  digitalWrite(RELAY_GEAR_PIN, LOW);
-  digitalWrite(RELAY_RFU_PIN, LOW);
+  digitalWrite(RELAY_POWER_PIN, HIGH);
+  digitalWrite(RELAY_DIRECTION_PIN, HIGH);
+  digitalWrite(RELAY_GEAR_PIN, HIGH);
+  digitalWrite(RELAY_RFU_PIN, HIGH);
 
   pinMode(MOTOR_SPEEDSW_PINA, OUTPUT);
   pinMode(MOTOR_SPEEDSW_PINB, OUTPUT);
@@ -177,12 +183,12 @@ void set_gear(bool isOn)
   if ( isOn )
   {
     pwm1.setPWM(SERVO_GEAR_PIN, 0, SERVO_GEAR_MAX);
-    digitalWrite(RELAY_GEAR_PIN, HIGH);
+    digitalWrite(RELAY_GEAR_PIN, LOW);
   }
   else
   {
     pwm1.setPWM(SERVO_GEAR_PIN, 0, SERVO_GEAR_MIN);
-    digitalWrite(RELAY_GEAR_PIN, LOW);
+    digitalWrite(RELAY_GEAR_PIN, HIGH);
   }
   gear_is_on =isOn;
 }
