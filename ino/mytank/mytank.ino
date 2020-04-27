@@ -23,6 +23,7 @@ int todolist_time[10] = { 0x00,0x00,0x00,0x00,0x00 };
 #define ACTION_ACS1       2    //  Accesory 1  ( Main linear actuator )
 #define ACTION_ACS2_A     3    //  Accesory 2  ( Linear actuator A )
 #define ACTION_ACS2_B     4    //  Accesory 2  ( Linear actuator B )
+#define ACTION_ACS2_AB    5    //  Accesory 2  ( Both Linear actuator A and B same move )
 
 #define ACTION_STOP       0
 #define ACTION_FORWARD    2
@@ -34,16 +35,6 @@ int todolist_time[10] = { 0x00,0x00,0x00,0x00,0x00 };
 #define ACTION_UP     2    
 #define ACTION_DOWN   3    
 
-#define ACTION_SERVO_LEFT     1    
-#define ACTION_SERVO_RIGHT    2
-
-#define ACTION_SERVO_SPEEDSW  5
-#define ACTION_VERIN1_UP      6
-#define ACTION_VERIN2_UP      7
-#define ACTION_VERIN3_UP      8
-#define ACTION_VERIN1_DOWN    9
-#define ACTION_VERIN2_DOWN    10
-#define ACTION_VERIN3_DOWN    11
 
 // Hardware
 //
@@ -60,32 +51,37 @@ int todolist_time[10] = { 0x00,0x00,0x00,0x00,0x00 };
 #define SERVO_RIGHT_MAX  330
 #define SERVO_RIGHT_MIN  550
 // GEAR engage (servo)
-#define SERVO_GEAR_PIN  3
-#define SERVO_GEAR_MAX  550
+#define SERVO_GEAR_PIN  2
+#define SERVO_GEAR_MAX  450
 #define SERVO_GEAR_MIN  150
 // SPEED Variator (servo)
-#define SERVO_SPEED_PIN  5
-#define SERVO_SPEED_MAX  550
+#define SERVO_SPEED_PIN  4
+#define SERVO_SPEED_MAX  450
 #define SERVO_SPEED_MIN  150
 // SPEED Switch LOW - HIGHT  (motor)
-#define MOTOR_SPEEDSW_PINA  42
-#define MOTOR_SPEEDSW_PINB  43
+#define MOTOR_SPEEDSW_PINA  35
+#define MOTOR_SPEEDSW_PINB  34
+#define MOTOR_SPEEDSW_TIME  400
 // RFU  (motor)
 #define MOTOR_RFU_PINA  44
 #define MOTOR_RFU_PINB  45
 // ACCESSORY 1  (Linear Actuator)
-#define LINEA_ACS1_PINA  35
-#define LINEA_ACS1_PINB  34
-// ACCESSORY 2  (Linear Actuator A)
+#define LINEA_ACS1_PINA  37
+#define LINEA_ACS1_PINB  36
+#define LINEA_ACS1_TIME  3000
+// ACCESSORY 1  (RFU)
+#define LINEB_ACS1_PINA  35
+#define LINEB_ACS1_PINB  34
+#define LINEB_ACS1_TIME  3000
+// ACCESSORY 2  (Linear Actuator A Left)
 #define LINEA_ACS2_PINA  41
 #define LINEA_ACS2_PINB  40
-#define LINEB_ACS2_TIME  3000
+#define LINEA_ACS2_TIME  3000
+// ACCESSORY 2  (Linear Actuator B Right )
 #define LINEB_ACS2_PINA  39
 #define LINEB_ACS2_PINB  38
-#define LINEA_ACS2_TIME  3000
-// ACCESSORY RFU  (Linear Actuator)
-#define LINEA_RFU_PINA  37
-#define LINEA_RFU_PINB  36
+#define LINEB_ACS2_TIME  3000
+
 
 // CONTACT ON OFF General (key)
 #define RELAY_POWER_PIN     33
@@ -149,10 +145,10 @@ void setup() {
   digitalWrite(LINEA_ACS2_PINA, LOW);
   digitalWrite(LINEA_ACS2_PINB, LOW);
 
-  pinMode(LINEB_ACS2_PINA, OUTPUT);
-  pinMode(LINEB_ACS2_PINB, OUTPUT);
-  digitalWrite(LINEB_ACS2_PINA, LOW);
-  digitalWrite(LINEB_ACS2_PINB, LOW);
+  pinMode(LINEB_ACS1_PINA, OUTPUT);
+  pinMode(LINEB_ACS1_PINB, OUTPUT);
+  digitalWrite(LINEB_ACS1_PINA, LOW);
+  digitalWrite(LINEB_ACS1_PINB, LOW);
 
   pinMode(LINEB_ACS2_PINA, OUTPUT);
   pinMode(LINEB_ACS2_PINB, OUTPUT);
@@ -164,8 +160,8 @@ void setup() {
 
   // move servo to HOME position
  pwm1.setPWM(SERVO_SPEED_PIN, 0, SERVO_SPEED_MIN);
- pwm1.setPWM(SERVO_LEFT_PIN, 0, SERVO_LEFT_MIN);
- pwm1.setPWM(SERVO_RIGHT_PIN, 0, SERVO_RIGHT_MIN);     
+ pwm1.setPWM(SERVO_LEFT_PIN, 0, SERVO_LEFT_MAX);
+ pwm1.setPWM(SERVO_RIGHT_PIN, 0, SERVO_RIGHT_MAX);     
  pwm1.setPWM(SERVO_GEAR_PIN, 0, SERVO_GEAR_MIN);     
 
   
@@ -266,24 +262,24 @@ void processCommand() {
   else if (mycmd=="mainup")
   {
       todolist_action[ACTION_ACS1] = ACTION_UP;
-      todolist_param[ACTION_ACS1] = myparamA.toInt();
+      todolist_time[ACTION_ACS1] = myparamA.toInt();
   }
   else if (mycmd=="maindown")
   {
       todolist_action[ACTION_ACS1] = ACTION_DOWN;
-      todolist_param[ACTION_ACS1] = myparamA.toInt();
+      todolist_time[ACTION_ACS1] = myparamA.toInt();
   }
   else if (mycmd=="power")
   {
     if( myparamA=="on")
     { 
-      digitalWrite(RELAY_POWER_PIN, HIGH);
+      digitalWrite(RELAY_POWER_PIN, LOW);
       power_is_on=true;
       currmsg="ok";
     }
     else if( myparamA=="off")
     { 
-      digitalWrite(RELAY_POWER_PIN, LOW);
+      digitalWrite(RELAY_POWER_PIN, HIGH);
       power_is_on=false;
       currmsg="ok";
     }
@@ -292,14 +288,12 @@ void processCommand() {
   {
     if( myparamA=="on")
     { 
-      pwm1.setPWM(SERVO_GEAR_PIN, 0, SERVO_GEAR_MAX);
-      gear_is_on=true;
+      set_gear(true);
       currmsg="ok_gear_on";
     }
     else if( myparamA=="off")
     { 
-      pwm1.setPWM(SERVO_GEAR_PIN, 0, SERVO_GEAR_MIN);
-      gear_is_on=false;
+      set_gear(false);
       currmsg="ok_gear_off";
     }
   }  
@@ -307,6 +301,13 @@ void processCommand() {
   {
     set_speed(myparamA.toInt());
     currmsg="ok_speed";
+  }  
+  else if (mycmd=="speedswitch")
+  {
+    if( myparamA=="off")
+      switch_speed(false);
+    if( myparamA=="on")
+      switch_speed(true);
   }  
   else if (mycmd=="set_servo_left")
   {
@@ -375,6 +376,7 @@ void checkTodoList() {
 
   // Do moves
   do_moves();
+  do_actuators();
 
 }
 
@@ -386,14 +388,33 @@ void do_reverse(bool newdirection)
     set_speed(0);
     delay(500); // time to stop before reverse
     if ( newdirection )
-      digitalWrite(RELAY_DIRECTION_PIN, LOW);  // default relay position is forward
+      digitalWrite(RELAY_DIRECTION_PIN, HIGH);  // default relay position is forward
     else
-      digitalWrite(RELAY_DIRECTION_PIN, HIGH);
+      digitalWrite(RELAY_DIRECTION_PIN, LOW);
     set_gear(true);
     going_forward=newdirection;
   }
   else
     set_gear(true);
+}
+
+void switch_speed(bool gofast)
+{
+  if ( gofast )
+  {
+      digitalWrite(MOTOR_SPEEDSW_PINA, HIGH);
+      digitalWrite(MOTOR_SPEEDSW_PINB, LOW);
+  }
+  else
+  {
+    digitalWrite(MOTOR_SPEEDSW_PINA, LOW);
+    digitalWrite(MOTOR_SPEEDSW_PINB, HIGH);
+  }
+
+  delay(MOTOR_SPEEDSW_TIME);
+  digitalWrite(MOTOR_SPEEDSW_PINA, LOW);
+  digitalWrite(MOTOR_SPEEDSW_PINB, LOW);
+  
 }
 
 void brake_left(bool goleft)
@@ -516,6 +537,43 @@ void do_moves()
     todolist_time[ACTION_MOVE] = todotime;
   }
   
+}
+
+
+void do_actuators()
+{
+  // Main actuator moves
+  byte myaction = todolist_action[ACTION_ACS1];
+
+  if ( myaction == ACTION_UP )
+  {
+      digitalWrite(LINEA_ACS1_PINA, HIGH);
+      digitalWrite(LINEA_ACS1_PINB, LOW);
+  }
+
+  if ( myaction == ACTION_DOWN )
+  {
+      digitalWrite(LINEA_ACS1_PINA, LOW);
+      digitalWrite(LINEA_ACS1_PINB, HIGH);
+  }
+
+  if ( myaction != 0 )
+  {
+    int todotime = todolist_time[ACTION_ACS1];
+    todotime = todotime - (int)timeSpend();
+    if ( todotime < 0 )
+    {
+      todotime=0;
+      todolist_action[ACTION_ACS1]=0;
+      digitalWrite(LINEA_ACS1_PINA, LOW);
+      digitalWrite(LINEA_ACS1_PINB, LOW);      
+    }
+    else
+    {
+      todolist_time[ACTION_ACS1] = todotime;
+    }
+  }
+
 }
 
 

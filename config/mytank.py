@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# #define API_KEY   "1c90a0dc-0c8c-439f-b97b-a600d67a451a"
+
 import requests
 from requests.exceptions import HTTPError
 from http.server import HTTPServer, SimpleHTTPRequestHandler
