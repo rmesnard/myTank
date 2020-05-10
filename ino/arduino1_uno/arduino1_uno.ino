@@ -405,6 +405,10 @@ void processSERIAL()
         led_clear(numpanel);
         }
     }
+    if (mycmd == "info") {
+      sendSensors();
+    }
+    
 }
 
 void AnimLeds()

@@ -5,7 +5,19 @@ arduino controller for actuators and sensors
 
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
+#include "PS2Mouse.h"
 
+#define DATA_PIN 23
+#define CLOCK_PIN 24
+//PS2Mouse mouse(CLOCK_PIN, DATA_PIN);
+
+#include "DHT.h"
+
+#define DHTPIN 22     // Digital pin connected to the DHT sensor
+#define DHTTYPE DHT22   // DHT 22  (AM2302), AM2321
+
+DHT dht(DHTPIN, DHTTYPE);
+float dth_temp=0,dth_hum=0;
 
 Adafruit_PWMServoDriver pwm1 = Adafruit_PWMServoDriver(0x40);
 
@@ -15,6 +27,10 @@ byte todolist_action[10] = { 0x00,0x00,0x00,0x00,0x00 };
 int todolist_param[10] = { 0x00,0x00,0x00,0x00,0x00 };
 int todolist_time[10] = { 0x00,0x00,0x00,0x00,0x00 };
 
+float Tilt_Roll,Tilt_Pitch,Tilt_Yaw;
+unsigned char Tilt_buf[8],Tilt_counter=0;
+
+#define TILT_SENSITIV   0.5
 
 // Action ARRAY
 //
@@ -154,6 +170,8 @@ void setup() {
   pinMode(LINEB_ACS2_PINB, OUTPUT);
   digitalWrite(LINEB_ACS2_PINA, LOW);
   digitalWrite(LINEB_ACS2_PINB, LOW);
+
+  dht.begin();
   
   pwm1.begin();  
   pwm1.setPWMFreq(60);
@@ -164,6 +182,16 @@ void setup() {
  pwm1.setPWM(SERVO_RIGHT_PIN, 0, SERVO_RIGHT_MAX);     
  pwm1.setPWM(SERVO_GEAR_PIN, 0, SERVO_GEAR_MIN);     
 
+//  mouse.initialize();
+
+ // Open tilt module
+  Serial1.begin(115200);
+  delay(4000);     
+  Serial1.write(0XA5);
+  Serial1.write(0X54);//correction mode
+  delay(4000);
+  Serial1.write(0XA5);
+  Serial1.write(0X51);//0X51:query mode, return directly to the angle value, to be sent each read, 0X52:Automatic mode,send a direct return angle, only initialization
   
 }
 
@@ -370,6 +398,64 @@ if ( newtime > mytime )
 else
   return( newtime );
 
+}
+
+void read_dth()
+{
+
+  float h = dht.readHumidity();
+  float t = dht.readTemperature();
+  
+  // Check if any reads failed and exit early (to try again).
+  if (isnan(h) || isnan(t) ) {
+    return;
+  }
+  dth_temp = t;
+  dth_hum = h;
+    
+}
+
+void read_tilt()
+{
+  float tmpvalue;
+  Serial1.write(0XA5);
+  Serial1.write(0X51);//send it for each read
+  while (Serial1.available()) {   
+  Tilt_buf[Tilt_counter]=(unsigned char)Serial1.read();
+  if(Tilt_counter==0&&Tilt_buf[0]!=0xAA) return;       
+  Tilt_counter++;       
+  if(Tilt_counter==8)               
+  {   
+    Tilt_counter=0;                 
+    if(Tilt_buf[0]==0xAA && Tilt_buf[7]==0x55)  // data package is correct     
+      {         
+       tmpvalue=(int16_t)(Tilt_buf[1]<<8|Tilt_buf[2])/100.00;
+
+       if ( ( tmpvalue > Tilt_Yaw + TILT_SENSITIV ) | ( tmpvalue < Tilt_Yaw - TILT_SENSITIV ) )
+       {
+        datachange = true;
+        Tilt_Yaw = tmpvalue;
+       }
+          
+       tmpvalue=(int16_t)(Tilt_buf[3]<<8|Tilt_buf[4])/100.00;
+
+       if ( ( tmpvalue > Tilt_Pitch + TILT_SENSITIV ) | ( tmpvalue < Tilt_Pitch - TILT_SENSITIV ) )
+       {
+        datachange = true;
+        Tilt_Pitch = tmpvalue;
+       }
+       
+       tmpvalue=(int16_t)(Tilt_buf[5]<<8|Tilt_buf[6])/100.00;
+
+       if ( ( tmpvalue > Tilt_Roll + TILT_SENSITIV ) | ( tmpvalue < Tilt_Roll - TILT_SENSITIV ) )
+       {
+        datachange = true;
+        Tilt_Roll = tmpvalue;
+       }
+
+      }     
+  } 
+  }
 }
 
 void checkTodoList() {
@@ -579,6 +665,22 @@ void do_actuators()
 
 void checkSensors() {
 
+  read_tilt();
+  read_dth();
+
+  /*
+    MouseData data = mouse.readData();
+    
+    Serial.print(data.status, BIN);
+    Serial.print("\tx=");
+    Serial.print(data.position.x);
+    Serial.print("\ty=");
+    Serial.print(data.position.y);
+    Serial.print("\twheel=");
+    Serial.print(data.wheel);
+    Serial.println();
+    */
+
 }
 
 
@@ -600,6 +702,17 @@ void sendSensors()
   else
     Serial.print(",\"gear\":\"off\"");
 
+  Serial.print("\",\"roll\":");
+  Serial.print(Tilt_Roll);
+  Serial.print(",\"pitch\":");
+  Serial.print(Tilt_Pitch);
+  Serial.print(",\"yaw\":");
+  Serial.println(Tilt_Yaw);
+  
+  Serial.print(",\"temp\":");
+  Serial.print(dth_temp);
+  Serial.print(",\"hum\":");
+  Serial.print(dth_hum);
   Serial.println("} ");
   datachange = false;
 }
