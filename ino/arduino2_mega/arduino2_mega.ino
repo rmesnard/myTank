@@ -702,12 +702,12 @@ void sendSensors()
   else
     Serial.print(",\"gear\":\"off\"");
 
-  Serial.print("\",\"roll\":");
+  Serial.print(",\"roll\":");
   Serial.print(Tilt_Roll);
   Serial.print(",\"pitch\":");
   Serial.print(Tilt_Pitch);
   Serial.print(",\"yaw\":");
-  Serial.println(Tilt_Yaw);
+  Serial.print(Tilt_Yaw);
   
   Serial.print(",\"temp\":");
   Serial.print(dth_temp);
