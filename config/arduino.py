@@ -2,6 +2,7 @@ import os
 import json
 import serial
 
+
 class arduinoModule():
     
     
@@ -94,6 +95,10 @@ class arduinoModule():
 
         return "update"
 
+    def sendcmd(self,cmdline):
+        self.serial_Arduino.write(bytes(cmdline,"utf-8"))
+        self.serial_Arduino.flush()
+        return
 
     def Flash(self):
         os.system("avrdude -C avrdude.conf -v -p atmega328p -c arduino -P /dev/ttyUSB0 -b 57600 -D -U flash:w:sonar_parking.ino.hex:i")

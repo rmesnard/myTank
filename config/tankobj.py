@@ -26,10 +26,35 @@ class tank():
         self.stopA = 0
         self.stopB = 0
 
-
+        self.Arduino = [] 
 
         self.SONAR_Id=-1
         self.CORE_Id=-1
 
     def calculatePosition(self):
         return
+
+    def cmd_forward(self,speed,duration):
+        #print("forward %i %i" % (speed,duration))
+        self.Arduino[self.CORE_Id].sendcmd(">forward:%i:%i." % (speed,duration))
+        return
+
+    def cmd_backward(self,speed,duration):
+        #print("backward %i %i" % (speed,duration))
+        self.Arduino[self.CORE_Id].sendcmd(">backward:%i:%i." % (speed,duration))
+        return
+
+    def cmd_left(self,speed,duration):
+        #print("left %i %i" % (speed,duration))
+        self.Arduino[self.CORE_Id].sendcmd(">left:%i:%i." % (speed,duration))
+        return
+
+    def cmd_right(self,speed,duration):
+        #print("right %i %i" % (speed,duration))
+        self.Arduino[self.CORE_Id].sendcmd(">right:%i:%i." % (speed,duration))
+        return        
+
+    def cmd_stop(self):
+        #print("stop")
+        self.Arduino[self.CORE_Id].sendcmd(">stop:0:0.")
+        return                
