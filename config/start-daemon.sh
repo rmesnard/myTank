@@ -17,5 +17,4 @@ python manage.py migrate
 nohup python3 -u mytank.py 2> mytank.log &
 echo "my tank service Started."
 
-nohup gunicorn --config gunicorn-cfg.py core.wsgi &
-echo "django Started."
+nohup gunicorn --config gunicorn-cfg.py core.wsgi
