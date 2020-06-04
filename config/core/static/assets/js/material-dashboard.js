@@ -141,36 +141,13 @@ $(document).on('click', '.navbar-toggler', function() {
 
 });
 
-  // Buttons Actions
-  $( "#button_keyboard" ).click(function() {
-    if ( G_keyboard_enabled )
-      G_keyboard_enabled =false;
-    else
-      G_keyboard_enabled =true;
+  
+$( "#button_joystick" ).click(function() {
+  twPleinEcran();
+});
+  
 
-    md.refreshbutton();
-  });
-
-  $( "#button_joystick" ).click(function() {
-    if ( G_joystick_available )
-    {
-      if ( G_joystick_enabled )
-        G_joystick_enabled =false;
-      else
-        G_joystick_enabled =true;
-      md.refreshbutton();
-    }
-  });
-
-  // Event Handlers
-  $(document).keydown(function(e) {
-    //
-    if ( G_keyboard_enabled )
-      alert( "Handler for .keydown() called." );
-    //if ( e.keyCode === 119 ) // w
-    //    doSomething();
-  });
-
+ 
 // activate collapse right menu when the windows is resized
 $(window).resize(function() {
   md.initSidebarsCheck();
@@ -205,23 +182,7 @@ md = {
       $("#keyboard_enabled").find("h3").html("Disabled");
     }
 
-    if (G_joystick_enabled) 
-    {
-      $("#joystick_enabled").removeClass("card-header-warning");
-      $("#joystick_enabled").addClass("card-header-success");
-      $("#joystick_enabled").find("h3").html("Enabled");
-    }
-    else
-    {
-      $("#joystick_enabled").removeClass("card-header-success");
-      $("#joystick_enabled").addClass("card-header-warning");
-      $("#joystick_enabled").find("h3").html("Disabled");      
-    }
 
-      if (G_joystick_available) 
-      $("#joystick_available").html('<i class="material-icons">bluetooth_connected</i>  Available')
-    else
-      $("#joystick_available").html('<i class="material-icons">bluetooth_connected</i>  Not available')
 
   },
 
@@ -389,22 +350,143 @@ md = {
     //var sizX = 300;
     renderer.setSize( sizX, sizX / 2 );
     document.getElementById('gyroscope3d_render').appendChild( renderer.domElement );
-    
-    var geometry = new THREE.BoxGeometry();
-    var material = new THREE.MeshBasicMaterial( { color: 0x008888 } );
+
+    var grid = new THREE.GridHelper( 200, 40, 0x000000, 0x000000 );
+    grid.material.opacity = 0.2;
+    grid.material.transparent = true;
+    grid.position.y = -1;
+    //grid.rotation.x = 0.2;
+   
+    scene.add( grid );
+
+    var groupA = new THREE.Group();
+
+    var geometry = new THREE.BoxGeometry(4,1,2);
+    var material = new THREE.MeshPhongMaterial( { color: 0x505050  , wireframe : false} );
     var cube = new THREE.Mesh( geometry, material );
-    scene.add( cube );
-    
-    camera.position.z = 5;
+    groupA.add( cube );
+    scene.add( groupA );
+
+    var groupB = new THREE.Group();
+
+    geometry = new THREE.CylinderGeometry( 0.4, 0.4, 1, 32,1,false,0,3.14 );
+    material = new THREE.MeshPhongMaterial( {color: 0x212121 , wireframe : false} );
+    var cylinder = new THREE.Mesh( geometry, material );
+    //cylinder.rotation.y = 4;
+    cylinder.rotation.x = 1.57;
+    //cylinder.rotation.z = 0.2;
+    cylinder.position.x =1;
+    cylinder.position.y = -0.5;
+    cylinder.position.z =1;
+    groupB.add( cylinder );
+    geometry = new THREE.CylinderGeometry( 0.4, 0.4, 1, 32,1,false,3.14,3.14 );
+    cylinder = new THREE.Mesh( geometry, material );
+    cylinder.rotation.x = 1.57;
+    //cylinder.rotation.z = 0.2;
+    cylinder.position.x =-2;
+    cylinder.position.y = -0.5;
+    cylinder.position.z =1;
+    groupB.add( cylinder );
+    geometry = new THREE.BoxGeometry(3,0.8,1);
+    cube = new THREE.Mesh( geometry, material );
+    cube.position.z =1;
+    cube.position.x =-0.5;
+    cube.position.y =-0.5;
+    groupB.add( cube );
+
+    scene.add( groupB );
+
+    var groupC = new THREE.Group();
+    groupC = groupB.clone(true);
+    groupC.position.z =-2;
+
+    scene.add( groupC );
+
+    camera.position.x = 1.5;
+    camera.position.z = 3;
+    camera.position.y = 2;
+    camera.lookAt( 0, 0, 0 );
+
+    var light = new THREE.HemisphereLight( 0xffffbb, 0x080820, 1.3 );
+    scene.add( light );
+
+    // Line cardinal
+    var material_line_left = new THREE.MeshPhongMaterial( { color: 0x000000  , wireframe : false} );
+
+    geometry = new THREE.BoxGeometry(5,0.1,0.1);
+    var line_left = new THREE.Mesh( geometry, material_line_left );
+    line_left.position.z = -2;
+    line_left.rotation.y= 1.57;
+    line_left.visible = false;
+    scene.add( line_left );
+
+    var material_line_right = new THREE.MeshPhongMaterial( { color: 0x000000  , wireframe : false} );
+
+    geometry = new THREE.BoxGeometry(5,0.1,0.1);
+    var line_right = new THREE.Mesh( geometry, material_line_right );
+    line_right.position.z = 2;
+    line_right.rotation.y= 1.57;
+    line_right.visible = false;
+    scene.add( line_right );
+
+    var material_line_front = new THREE.MeshPhongMaterial( { color: 0x000000  , wireframe : false} );
+
+    geometry = new THREE.BoxGeometry(5,0.1,0.1);
+    var line_front = new THREE.Mesh( geometry, material_line_front );
+    line_front.position.x = -2;
+    //line_front.rotation.y= 1.57;
+    line_front.visible = false;
+    scene.add( line_front );
+
+
+    // controls
+
+    controls = new THREE.OrbitControls( camera, renderer.domElement );
+
+    //controls.addEventListener( 'change', render ); // call this only in static scenes (i.e., if there is no animation loop)
+
+    controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+    controls.dampingFactor = 0.05;
+
+    //controls.screenSpacePanning = false;
+
+    //controls.minDistance = 100;
+    //controls.maxDistance = 500;
+
+    //controls.maxPolarAngle = Math.PI / 2;
     
     function animate() {
       requestAnimationFrame( animate );
-      cube.rotation.x += 0.01;
-      cube.rotation.y += 0.01;
+      
+     // grid.rotation.y += 0.01;
+      
+
+      if (( grid.rotation.x < -6.28 ) | ( grid.rotation.x > 6.28 ) )
+        grid.rotation.x = 0;
+
+      if (( grid.rotation.z < -6.28 ) | ( grid.rotation.z > 6.28 ) )
+      grid.rotation.z = 0;
+
+      if ((grid.rotation.x < -0.2) & (grid.rotation.x > -2.57))
+      {
+        line_right.material.color.set(0xFF0000);
+        line_right.visible = true;
+      }
+      else
+       line_right.visible = false;
+
+     if ((grid.rotation.x > 0.2) & (grid.rotation.x < 2.57))
+     {
+      line_left.material.color.set(0xFF0000);
+      line_left.visible = true;
+     }
+     else
+      line_left.visible = false;
+
       renderer.render( scene, camera );
     }
     animate();
-    
+   
   },
 
   initDashboardPageCharts: function() {
@@ -903,4 +985,31 @@ function debounce(func, wait, immediate) {
     }, wait);
     if (immediate && !timeout) func.apply(context, args);
   };
+};
+
+
+function twPleinEcran(_element) {
+  var monElement = _element||document.documentElement;
+
+  if (document.fullscreenElement) {
+if (!document.fullscreenElement) {
+      monElement.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  }
+  if (document.webkitFullscreenEnabled) {
+if (!document.webkitFullscreenElement) {
+      monElement.webkitRequestFullscreen();
+    } else {
+      document.webkitExitFullscreen();
+    }
+  }
+  if (document.msFullscreenEnabled) {
+if (!document.msFullscreenElement) {
+      monElement.msRequestFullscreen();
+    } else {
+      document.msExitFullscreen();
+    }
+  }
 };
