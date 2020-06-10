@@ -145,6 +145,14 @@ $(document).on('click', '.navbar-toggler', function() {
 $( "#button_joystick" ).click(function() {
   twPleinEcran();
 });
+
+$( "#button_gamepad" ).click(function() {
+  $("#gamepad_pop").toggle();
+});
+  
+$( "#button_debug" ).click(function() {
+  sendGamePadInfos(10,10,10,10);
+});
   
 
  

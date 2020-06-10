@@ -10,5 +10,6 @@ python-decouple
 gunicorn
 whitenoise
 django-heroku
+django-cors-headers
 requests
 pyserial

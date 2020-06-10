@@ -22,24 +22,15 @@ function connecthandler(e) {
 function addgamepad(gamepad) {
   controllers[gamepad.index] = gamepad; 
 
-  // TODO select gamepad to use in config
-  console.log("add gamepad");
-
-  $("#joystick_available").html('<i class="material-icons">bluetooth_connected</i> ' + gamepad.id)
-
-  $("#joystick_enabled").removeClass("card-header-warning");
-  $("#joystick_enabled").addClass("card-header-success");
-  $("#joystick_enabled").find("h3").html("Enabled");
+  $("#button_bluetooth").css("background", "Blue");
+  
 
   rAF(updateStatus);
 }
 
 function disconnecthandler(e) {
-  $("#joystick_available").html('<i class="material-icons">bluetooth_connected</i>  Not available')
-  $("#joystick_enabled").removeClass("card-header-success");
-  $("#joystick_enabled").addClass("card-header-warning");
-  $("#joystick_enabled").find("h3").html("Disabled");      
-
+  $("#button_bluetooth").css("background", "Grey");
+  
   removegamepad(e.gamepad);
 }
 
@@ -72,25 +63,46 @@ function updateStatus() {
       var pct = Math.round(val * 100) + "%";
       //b.style.backgroundSize = pct + " " + pct;
       if (pressed) {
-        //b.className = "gamebutton pressed";
-        $("#joystick_enabled").find("h3").html("gamebutton pressed");
-        console.log("gamebutton pressed:");
+        
+        $("#game_button_debug").html("gamebutton pressed " + i);
+        
       } 
       /*
-      else {
-        alert( "gamebutton pressed " + i );
-        //b.className = "gamebutton";
-      }
+        IPEGA 9023
+
+        0 - A
+        1 - B
+        2 - X
+        3 - Y
+
+        4 - L
+        5 - R
+        6 - L2
+        7 - R2
+
+        12 - Cross up
+        13 - Cross down
+        14 - Cross left
+        15 - Cross right
+
+        Axe
+
+        0 - Left X 
+        1 - Left Y
+        2 - Right X
+        3 - Right Y
+
       */
     }
-    /*
-    var axes = d.getElementsByClassName("axis");
-    for (var i=0; i<controller.axes.length; i++) {
-      var a = axes[i];
-      a.innerHTML = i + ": " + controller.axes[i].toFixed(4);
-      a.setAttribute("value", controller.axes[i]);
-    }
-    */
+
+
+      $("#game_axe0_debug").html("axe 0  = " + Math.round(controller.axes[0] * 100) + "%");
+      $("#game_axe1_debug").html("axe 1  = " + Math.round(controller.axes[1] * 100) + "%");
+      $("#game_axe2_debug").html("axe 2  = " + Math.round(controller.axes[2] * 100) + "%");
+      $("#game_axe3_debug").html("axe 3  = " + Math.round(controller.axes[3] * 100) + "%");
+
+      sendGamePositions(Math.round(controller.axes[0] * 100),Math.round(controller.axes[1] * 100),Math.round(controller.axes[2] * 100),Math.round(controller.axes[3] * 100));
+
   }
   }
   rAF(updateStatus);

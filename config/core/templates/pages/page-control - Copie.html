@@ -1,0 +1,259 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Dashboard {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+<div class="row">
+
+<!-- Column 1  -->
+
+  <div class="col-lg-2">
+
+      <div class="row">
+        <div class="col-lg-12">
+          <div class="card card-stats">
+            <div class="card-header card-header-warning card-header-icon" id="joystick_enabled" >
+              <div class="card-icon" id="button_joystick" >
+                <i class="material-icons">sports_esports</i>
+              </div>
+              <p class="card-category">joystick</p>
+              <h3 class="card-title"></h3>
+            </div>
+            <div class="card-footer">
+              <span id="joystick_available"></span>
+            </div>
+          </div>
+        </div>
+    </div>
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card card-stats">
+          <div class="card-header card-header-success card-header-icon" id="record_enabled" >
+            <div class="card-icon" id="button_record" >
+              <i class="material-icons">history</i>
+            </div>
+            <p class="card-category">replay</p>
+            <h3 class="card-title"></h3>
+          </div>
+          <div class="card-footer">
+            <span id="record_status"></span>
+          </div>
+        </div>
+      </div>
+  </div>
+  <!-- End Column 1  -->
+  </div>
+
+ <!-- Column 2  -->
+ 
+  <div class="col-lg-5">
+
+    <!-- Touch -->
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card card-stats">
+          <div class="card-header card-header-success card-header-icon" id="touch_enabled" >
+            <div class="card-icon" id="button_touch" >
+              <i class="material-icons">touch_app</i>
+            </div>
+            <p class="card-category">touch control</p>
+
+            <div class="row">
+              <div class="card card-stats"> </div>
+            </div>
+            <div class="row">
+
+              <div class="card-icon card-touch" style="background: grey;" id="button_move_left" >
+                <i class="material-icons" style="transform: rotate(180deg);">subdirectory_arrow_right</i><bold>A</bold>
+              </div>
+              <div class="card-icon card-touch" style="background: grey;" id="button_move_forward" >
+                <i class="material-icons">arrow_upward</i><bold>Z</bold>
+              </div>           
+              <div class="card-icon card-touch" style="background: grey;" id="button_move_right" >
+                <i class="material-icons" style="transform: rotate(180deg);">subdirectory_arrow_left</i><bold>E</bold>
+              </div>    
+
+            </div>
+            <div class="row">
+
+              <div class="card-icon card-touch" style="background: grey;" id="button_move_turnleft" >
+                <i class="material-icons">arrow_back</i><bold>Q</bold>
+              </div>
+              <div class="card-icon card-touch" style="background: grey;" id="button_move_stop" >
+                <i class="material-icons">cancel</i><bold>S</bold>
+              </div>           
+              <div class="card-icon card-touch" style="background: grey;" id="button_move_turnright" >
+                <i class="material-icons">arrow_forward</i><bold>D</bold>
+              </div>    
+            </div>
+
+            <div class="row">
+
+              <div class="card-icon card-touch" style="background: grey;" id="button_move_leftback" >
+                <i class="material-icons" >subdirectory_arrow_left</i><bold>W</bold>
+              </div>
+              <div class="card-icon card-touch" style="background: grey;" id="button_move_backward" >
+                <i class="material-icons">arrow_downward</i><bold>X</bold>
+              </div>  
+              <div class="card-icon card-touch" style="background: grey;" id="button_move_rightback" >         
+                <i class="material-icons" >subdirectory_arrow_right</i><bold>C</bold>
+              </div>    
+            </div>
+
+            <div class="row" id="commands_pusher" >
+              <div class="card-icon card-touch" style="background: grey;" id="button_pusher_up" >
+                <i class="material-icons">expand_less</i><bold>7</bold>
+              </div>
+              <div class="card-icon card-touch" style="background: grey;" id="button_pusher_down" >
+                <i class="material-icons">expand_more</i><bold>4</bold>
+              </div>         
+              <div>
+                <img style="height: 80%;width: 80%;" src="/static/assets/img/puller.png">
+              </div>                
+              <div class="card-body">
+                <h4 class="card-title">Puller</h4><hr>
+              </div>                
+            </div>
+
+            <div class="row" id="command_bucket" >
+              <div class="card-icon card-touch" style="background: grey;" id="button_bucket_up" >
+                <i class="material-icons" >expand_less</i><bold>8</bold>
+              </div>
+              <div class="card-icon card-touch" style="background: grey;" id="button_bucket_down" >
+                <i class="material-icons" >expand_more</i><bold>5</bold>
+              </div>
+              <div style="left: -10px;">
+                <img style="height: 80%;width: 80%;" src="/static/assets/img/bucket.png">
+              </div>                            
+              <div class="card-body" >
+                <h4 class="card-title">Bucket</h4><hr>
+              </div>
+            </div>
+
+            <div class="row" id="command_tub">
+              <div class="card-icon card-touch" style="background: grey;" id="button_tub_up" >
+                <i class="material-icons" >expand_less</i><bold>8</bold>
+              </div>
+              <div class="card-icon card-touch" style="background: grey;" id="button_tub_down" >
+                <i class="material-icons" >expand_more</i><bold>5</bold>
+              </div>  
+              <div>
+                <img style="height: 80%;width: 80%;" src="/static/assets/img/tug.png">
+              </div>                 
+              <div class="card-body">
+                <h4 class="card-title">Tub</h4>
+              </div>                       
+            </div>
+
+            <div class="row" id="command_crane">
+              <div class="card-icon card-touch" style="background: grey;" id="button_crane_up" >
+                <i class="material-icons" >expand_less</i><bold>8</bold>
+              </div>
+              <div class="card-icon card-touch" style="background: grey;" id="button_crane_down" >
+                <i class="material-icons" >expand_more</i><bold>5</bold>
+              </div>  
+              <div>
+                <img style="height: 80%;width: 80%;" src="/static/assets/img/crane.png">
+              </div>                 
+              <div class="card-body">
+                <h4 class="card-title">Crane</h4>
+              </div>                       
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+  <!-- End Column 2  -->
+
+  </div>
+
+  <!-- Column 3  -->
+
+  <div class="col-lg-3">
+
+    <!-- Gyroscope -->
+    <div class="row">
+    <div class="col-lg-12" >
+      <div class="card card-stats" id="gyroscope3d_container" >
+        <div class="card-header card-header-success card-header-icon" >
+          <p class="card-category">gyroscope</p>
+          <h3 class="card-title"></h3>
+        </div>
+        <div class="card-body" id="gyroscope3d_render">
+        </div>          
+      </div>
+    </div>
+
+    <!-- Infos -->
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card card-stats">
+          <div class="card-header card-header-success card-header-icon" id="general_infos" >
+            <p class="card-category">infos</p>
+            <h3 class="card-title"></h3>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- End Column 3  -->
+
+  </div>  
+
+  <!-- Column 4  -->
+
+  <div class="col-lg-2">
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card card-chart">
+          <div class="card-header card-header-success">
+            <div class="ct-chart" id="mainbatteryChart"></div>
+          </div>
+          <div class="card-body">
+            <h4 class="card-title">Main Battery</h4>
+            <p class="card-footer">
+              <span><i class="material-icons">power</i>  Charging...</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card card-chart">
+          <div class="card-header card-header-success">
+            <div class="ct-chart" id="secondbatteryChart"></div>
+          </div>
+          <div class="card-body">
+            <h4 class="card-title">Accessory Battery</h4>
+            <p class="card-footer">
+              <span><i class="material-icons">power</i>  Charging...</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<!-- end of Column 4 -->
+
+  </div>
+</div>
+
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+  <script>
+    $(document).ready(function() {
+      // Javascript method's body can be found in assets/js/demos.js
+      md.initDashboardPageCharts();
+      md.initDashboardPageGyroscope();
+    });
+  </script>
+
+{% endblock javascripts %}
