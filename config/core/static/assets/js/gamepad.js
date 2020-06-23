@@ -63,9 +63,8 @@ function updateStatus() {
       var pct = Math.round(val * 100) + "%";
       //b.style.backgroundSize = pct + " " + pct;
       if (pressed) {
-        
         $("#game_button_debug").html("gamebutton pressed " + i);
-        
+        sendButton(i);
       } 
       /*
         IPEGA 9023
@@ -101,7 +100,7 @@ function updateStatus() {
       $("#game_axe2_debug").html("axe 2  = " + Math.round(controller.axes[2] * 100) + "%");
       $("#game_axe3_debug").html("axe 3  = " + Math.round(controller.axes[3] * 100) + "%");
 
-      sendGamePositions(Math.round(controller.axes[0] * 100),Math.round(controller.axes[1] * 100),Math.round(controller.axes[2] * 100),Math.round(controller.axes[3] * 100));
+      sendMoves(Math.round(controller.axes[0] * 100),Math.round(controller.axes[1] * 100),Math.round(controller.axes[2] * 100),Math.round(controller.axes[3] * 100));
 
   }
   }
@@ -121,6 +120,35 @@ function scangamepads() {
   }
 }
 
+
+function twPleinEcran(_element) {
+  var monElement = _element||document.documentElement;
+
+  if (document.fullscreenElement) {
+if (!document.fullscreenElement) {
+      monElement.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  }
+  if (document.webkitFullscreenEnabled) {
+if (!document.webkitFullscreenElement) {
+      monElement.webkitRequestFullscreen();
+    } else {
+      document.webkitExitFullscreen();
+    }
+  }
+  if (document.msFullscreenEnabled) {
+if (!document.msFullscreenElement) {
+      monElement.msRequestFullscreen();
+    } else {
+      document.msExitFullscreen();
+    }
+  }
+};
+
+
+
 if (haveEvents) {
   window.addEventListener("gamepadconnected", connecthandler);
   window.addEventListener("gamepaddisconnected", disconnecthandler);
@@ -130,3 +158,28 @@ if (haveEvents) {
 } else {
   setInterval(scangamepads, 500);
 }
+
+$(function(){
+
+$( "#button_joystick" ).click(function() {
+  twPleinEcran();
+});
+
+$( "#button_gamepad" ).click(function() {
+  $("#gamepad_pop").toggle();
+});
+  
+$( "#button_debug" ).click(function() {
+  sendMoves(10,10,10,10);
+});
+  
+$( "#button_settings" ).click(function() {
+  window.location.href = 'settings';
+});
+});
+
+$(document).ready(function() {
+
+  $('body').bootstrapMaterialDesign();
+
+});
