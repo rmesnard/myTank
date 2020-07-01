@@ -22,14 +22,14 @@ function connecthandler(e) {
 function addgamepad(gamepad) {
   controllers[gamepad.index] = gamepad; 
 
-  $("#button_bluetooth").css("background", "Blue");
+  $("#button_gamepad").css("background", "Blue");
   
 
   rAF(updateStatus);
 }
 
 function disconnecthandler(e) {
-  $("#button_bluetooth").css("background", "Grey");
+  $("#button_gamepad").css("background", "Grey");
   
   removegamepad(e.gamepad);
 }
@@ -161,7 +161,7 @@ if (haveEvents) {
 
 $(function(){
 
-$( "#button_joystick" ).click(function() {
+$( "#button_main" ).click(function() {
   twPleinEcran();
 });
 

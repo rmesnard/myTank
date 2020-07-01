@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
 # #define API_KEY   "1c90a0dc-0c8c-439f-b97b-a600d67a451a"
-
+import socket 
 import requests
 from requests.exceptions import HTTPError
 from http.server import HTTPServer, SimpleHTTPRequestHandler
-from arduino import arduinoModule
-from tankobj import tank, tankEncoder
-from httpcom import myHandler
+from arduino import *
+from tankobj import *
+from httpcom import *
 from json import JSONEncoder
 import json
 
@@ -24,25 +24,25 @@ def processEngine():
 
     global theTank
 
-    theTank.gear = theTank.Arduino[theTank.CORE_Id].gear
-    theTank.hum = theTank.Arduino[theTank.CORE_Id].hum
-    theTank.temp = theTank.Arduino[theTank.CORE_Id].temp
-    theTank.pitch = theTank.Arduino[theTank.CORE_Id].pitch
-    theTank.roll = theTank.Arduino[theTank.CORE_Id].roll
-    theTank.yaw = theTank.Arduino[theTank.CORE_Id].yaw
-    theTank.power = theTank.Arduino[theTank.CORE_Id].power
-    theTank.speed = theTank.Arduino[theTank.CORE_Id].speed
-    theTank.sonar_mode = theTank.Arduino[theTank.SONAR_Id].sonar_mode
-    theTank.sonar_A = theTank.Arduino[theTank.SONAR_Id].sonar_A
-    theTank.sonar_B = theTank.Arduino[theTank.SONAR_Id].sonar_B
-    theTank.sonar_C = theTank.Arduino[theTank.SONAR_Id].sonar_C
-    theTank.sonar_D = theTank.Arduino[theTank.SONAR_Id].sonar_D
-    theTank.sonar_E = theTank.Arduino[theTank.SONAR_Id].sonar_E
-    theTank.sonar_F = theTank.Arduino[theTank.SONAR_Id].sonar_F
-    theTank.sonar_G = theTank.Arduino[theTank.SONAR_Id].sonar_G
-    theTank.sonar_H = theTank.Arduino[theTank.SONAR_Id].sonar_H
-    theTank.stopA = theTank.Arduino[theTank.SONAR_Id].stopA
-    theTank.stopB = theTank.Arduino[theTank.SONAR_Id].stopB
+    theTank.status.gear = theTank.Arduino[theTank.status.CORE_Id].gear
+    theTank.status.hum = theTank.Arduino[theTank.status.CORE_Id].hum
+    theTank.status.temp = theTank.Arduino[theTank.status.CORE_Id].temp
+    theTank.status.pitch = theTank.Arduino[theTank.status.CORE_Id].pitch
+    theTank.status.roll = theTank.Arduino[theTank.status.CORE_Id].roll
+    theTank.status.yaw = theTank.Arduino[theTank.status.CORE_Id].yaw
+    theTank.status.power = theTank.Arduino[theTank.status.CORE_Id].power
+    theTank.status.speed = theTank.Arduino[theTank.status.CORE_Id].speed
+    theTank.status.sonar_mode = theTank.Arduino[theTank.status.SONAR_Id].sonar_mode
+    theTank.status.sonar_A = theTank.Arduino[theTank.status.SONAR_Id].sonar_A
+    theTank.status.sonar_B = theTank.Arduino[theTank.status.SONAR_Id].sonar_B
+    theTank.status.sonar_C = theTank.Arduino[theTank.status.SONAR_Id].sonar_C
+    theTank.status.sonar_D = theTank.Arduino[theTank.status.SONAR_Id].sonar_D
+    theTank.status.sonar_E = theTank.Arduino[theTank.status.SONAR_Id].sonar_E
+    theTank.status.sonar_F = theTank.Arduino[theTank.status.SONAR_Id].sonar_F
+    theTank.status.sonar_G = theTank.Arduino[theTank.status.SONAR_Id].sonar_G
+    theTank.status.sonar_H = theTank.Arduino[theTank.status.SONAR_Id].sonar_H
+    theTank.status.stopA = theTank.Arduino[theTank.status.SONAR_Id].stopA
+    theTank.status.stopB = theTank.Arduino[theTank.status.SONAR_Id].stopB
 
     theTank.calculatePosition()
 
@@ -51,17 +51,22 @@ def sendUpdatetoServer():
     global theTank
 
     #print('sendUpdatetoServer')
-    data = tankEncoder().encode(theTank)
-    response = requests.post('http://127.0.0.1/api/setstatus', data=data,headers={"Content-Type": "application/json"})
+    data = tankEncoder().encode(theTank.status)
+    response = requests.post('http://' + theTank.host_ip + '/api/setstatus', data=json.dumps(data),headers={"Content-Type": "application/json"})
     json_response = response.json()
-    print(json_response['status'])
+    #print(json_response['status'])
     return
+
 
 def main():
     global mynumber
     global line
     global theTank
     print('mytank start')
+
+    # getlocal IP for REST API
+    theTank.host_name = "raspberry_django" 
+    theTank.host_ip = "192.168.4.10"
 
     #response = requests.post('http://192.168.1.13/test',  data=[('apikey', '1c90a0dc-0c8c-439f-b97b-a600d67a451a'),('command', 'set_servo_speed'),('param', '1500')])
     #json_response = response.json()
@@ -94,18 +99,18 @@ def main():
                 arduinoInfo = theTank.Arduino[0].processSerial()
                 if ( arduinoInfo == "init"):    
                     if theTank.Arduino[0].id == "SONAR":
-                        theTank.SONAR_Id = 0
+                        theTank.status.SONAR_Id = 0
                     if theTank.Arduino[0].id == "CORE":
-                        theTank.theTank.CORE_Id = 0
+                        theTank.status.CORE_Id = 0
                 if ( arduinoInfo != ""):
                     updateNeedeed = True             
             if theTank.Arduino[1].isOpen:
                 arduinoInfo = theTank.Arduino[1].processSerial()
                 if ( arduinoInfo == "init"):    
                     if theTank.Arduino[1].id == "SONAR":
-                        theTank.SONAR_Id = 1
+                        theTank.status.SONAR_Id = 1
                     if theTank.Arduino[1].id == "CORE":
-                        theTank.CORE_Id = 1
+                        theTank.status.CORE_Id = 1
                 if ( arduinoInfo != ""):
                     updateNeedeed = True               
 

@@ -1,0 +1,159 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Page User {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+
+  <div class="row">
+    <div class="col-sm-12">
+      <div class="card card-stats">
+      <div class="card-header card-header-warning card-header-icon" id="button_settings" >
+        <div class="card-icon" id="button_main" >
+        <i class="material-icons">build</i>
+        </div>
+        <p class="card-category">build</p>
+      </br>
+    
+                
+      <div class="row">
+      <div class="col-sm-12">
+        <div class="card-icon card-touch" style="background: SlateBlue;" id="button_gamepad" >
+        <i class="material-icons">sports_esports</i>
+        </div>
+        <div class="card-icon card-touch" style="background: grey;" id="button_dd" >
+        <i class="material-icons">done</i>
+        </div>           
+        <div class="card-icon card-touch" style="background: grey;" id="button_camera" >
+        <i class="material-icons">done</i>
+        </div>           
+        <div class="card-icon card-touch" style="background: grey;" id="button_debug" >
+        <i class="material-icons">done</i>
+        </div>           
+        <div class="card-icon card-touch" style="background: grey;" id="button_security" >
+        <i class="material-icons">done</i>
+        </div>           
+        <div class="card-icon card-touch" style="background: grey;" id="button_refresh" >
+        <i class="material-icons">done</i>
+        </div>           
+      </div>
+      </div>
+      
+      </br>
+      
+      <div class="row">
+         
+        <div class="col-sm-12">
+
+              <div class="row">
+                  <div class="col-sm-4" >
+                      <label class="form-title" >isRunning</label>
+                  </div>
+                  <div class="col-sm-2">
+                    <label class="form-title" id="isRunning" >{{ isRunning }}</label>
+                  </div>
+                  <div class="col-sm-4" >
+                    <label class="form-title" >gear</label>
+                </div>
+                <div class="col-sm-2">
+                  <label class="form-title" id="gear" >{{ gear }}</label>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-sm-4" >
+                    <label class="form-title" >hum</label>
+                </div>
+                <div class="col-sm-2">
+                  <label class="form-title" id="hum" >{{ hum }}</label>
+                </div>
+                <div class="col-sm-4" >
+                  <label class="form-title" >pitch</label>
+              </div>
+              <div class="col-sm-2">
+                <label class="form-title" id="pitch" >{{ pitch }}</label>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-sm-4" >
+                  <label class="form-title" >temp</label>
+              </div>
+              <div class="col-sm-2">
+                <label class="form-title" id="temp" >{{ temp }}</label>
+              </div>
+              <div class="col-sm-4" >
+                <label class="form-title" >roll</label>
+              </div>
+              <div class="col-sm-2">
+                <label class="form-title" id="roll" >{{ roll }}</label>
+              </div>
+            </div>
+
+
+            <div class="row">
+              <div class="col-sm-4" >
+                  <label class="form-title" >power</label>
+              </div>
+              <div class="col-sm-2">
+                <label class="form-title" id="power" >{{ power }}</label>
+              </div>
+              <div class="col-sm-4" >
+                <label class="form-title" >yaw</label>
+              </div>
+              <div class="col-sm-2">
+                <label class="form-title" id="yaw" >{{ yaw }}</label>
+              </div>
+            </div>
+
+
+            <div class="row">
+              <div class="col-sm-4" >
+                  <label class="form-title" >stopA</label>
+              </div>
+              <div class="col-sm-2">
+                <label class="form-title" id="stopA" >{{ stopA }}</label>
+              </div>
+              <div class="col-sm-4" >
+                <label class="form-title" >stopB</label>
+              </div>
+              <div class="col-sm-2">
+                <label class="form-title" id="stopB" >{{ stopB }}</label>
+              </div>
+            </div>
+
+
+            <div class="row">
+              <div class="col-sm-4" >
+                  <label class="form-title" >speed</label>
+              </div>
+              <div class="col-sm-2">
+                <label class="form-title" id="speed" >{{ speed }}</label>
+              </div>
+
+            </div>
+
+
+        </div>
+      </div>
+      </div>
+    </div>          
+  </div>  
+  </div>
+    
+    <div style="text-align: left;width: 400px;background: white;display: block;position: absolute;left: 170px;top: 25px;z-index: 3;" id="view_debug" ></div>             
+    
+            
+
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+  <script src="/static/assets/js/debug.js"></script>
+
+{% endblock javascripts %}

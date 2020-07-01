@@ -1,13 +1,10 @@
 from json import JSONEncoder
 import json
 
-class tank():
-    
-    
+class tankstatus():
+
     def __init__(self):
         self.isRunning = False
-        
-        
         self.gear =""
         self.hum = 0
         self.temp = 0
@@ -28,10 +25,20 @@ class tank():
         self.stopA = 0
         self.stopB = 0
 
-        self.Arduino = [] 
-
         self.SONAR_Id=-1
         self.CORE_Id=-1
+
+
+class tank():
+    
+    def __init__(self):
+        self.isRunning = False
+        
+        self.host_name=""
+        self.host_ip=""
+        
+        self.status = tankstatus()
+        self.Arduino = [] 
 
     def calculatePosition(self):
         return
@@ -65,7 +72,7 @@ class tankEncoder(JSONEncoder):
 
     def default(self, object):
 
-        if isinstance(object, tank):
+        if isinstance(object, tankstatus):
 
             return object.__dict__
 

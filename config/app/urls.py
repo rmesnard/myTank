@@ -15,11 +15,18 @@ urlpatterns = [
 
     # The home page
     path('', views.index, name='home'),
+    path('index', views.index, name='home'),
     # The Settings page
     path('settings', views.settings, name='settings'),
+    # The Debug page
+    path('debug', views.debug, name='debug'),
+
     # AJAX functions
     path('ajax/sendmove', views.aj_send_move, name='aj_send_move'),
     path('ajax/sendbutton', views.aj_send_button, name='aj_send_button'),
 
+    # API functions
+    path('api/setstatus', views.api_set_status, name='api_set_status'),
+    path('api/getsettings', views.api_get_settings, name='api_get_settings'),
     
 ]

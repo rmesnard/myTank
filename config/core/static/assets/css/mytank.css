@@ -1021,8 +1021,8 @@ pre code {
 .row {
   display: flex;
   flex-wrap: wrap;
-  margin-right: -15px;
-  margin-left: -15px;
+  margin-right: 0px;
+  margin-left: 0px;
 }
 
 .no-gutters {
@@ -1106,11 +1106,12 @@ pre code {
 .col-xl-12,
 .col-xl,
 .col-xl-auto {
+  text-align: left;
   position: relative;
   width: 100%;
   min-height: 1px;
-  padding-right: 15px;
-  padding-left: 15px;
+  padding-right: 0px;
+  padding-left: 0px;
 }
 
 .col {
@@ -2589,7 +2590,7 @@ select.form-control-lg:not([size]):not([multiple]),
     display: flex;
     flex: 0 0 auto;
     flex-flow: row wrap;
-    align-items: center;
+    align-items: left;
     margin-bottom: 0;
   }
   .form-inline .form-control {
@@ -2625,42 +2626,39 @@ select.form-control-lg:not([size]):not([multiple]),
   }
 }
 
-.form-txt {
-  color: #000000;
-  background-color: #86acca;
-  border-color: #2196f3;
-  box-shadow: none;
+.form-line {
   display: inline-block;
-  font-weight: 500;
-  text-align: center;
-  white-space: nowrap;
-  
-  user-select: none;
-  border: 1px solid transparent;
-  padding: 0.46875rem 1rem;
-  font-size: 1rem;
-  line-height: 1.5;
-  border-radius: 0.25rem;
-  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;  
-
+  align-items: left;
+  margin-left: 5px;
 }
 
-.form-title {
-  
+
+.form-txt {
   color: #000000;
-  background-color: #bbbbbb;
-  box-shadow: none;
+  background-color: #dddddd;
   display: inline-block;
   font-weight: 500;
-  text-align: center;
+  text-align: right;
   white-space: nowrap;
-  
-  user-select: none;
-  border: 1px solid transparent;
-  padding: 0.46875rem 1.2rem;
-  font-size: 1rem;
+  border: none;
+  padding: 0.46875rem 0.5rem;
+  font-size: 1.1rem;
   line-height: 1.5;
-  border-radius: 0.25rem;
+  width: 100%;
+  }
+
+.form-title {
+  color: #000000;
+  background-color: #dddddd;
+  display: inline-block;
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+  border: none;
+  padding: 0.46875rem 0.5rem;
+  font-size: 1.1rem;
+  line-height: 1.5;
+  width: 100%;
 }
 
 
@@ -2673,7 +2671,7 @@ select.form-control-lg:not([size]):not([multiple]),
   white-space: nowrap;
   user-select: none;
   border: 1px solid transparent;
-  padding: 0.46875rem 1rem;
+  padding: 0.46875rem 0.5rem;
   font-size: 1rem;
   line-height: 1.5;
   border-radius: 0.25rem;
