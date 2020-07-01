@@ -1,3 +1,5 @@
+from json import JSONEncoder
+import json
 
 class tank():
     
@@ -58,3 +60,19 @@ class tank():
         #print("stop")
         self.Arduino[self.CORE_Id].sendcmd(">stop:0:0.")
         return                
+
+class tankEncoder(JSONEncoder):
+
+    def default(self, object):
+
+        if isinstance(object, tank):
+
+            return object.__dict__
+
+        else:
+
+            # call base class implementation which takes care of
+
+            # raising exceptions for unsupported types
+
+            return json.JSONEncoder.default(self, object)        

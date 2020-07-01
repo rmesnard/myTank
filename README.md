@@ -32,7 +32,7 @@ sudo docker run -d --name="mytank" -p 80:5005 -p 8000:8000 --device /dev/ttyUSB0
 
 #share config
 
-sudo docker run -d -p 445:445 -v mytank_config:/share/conf --name samba_tank trnape/rpi-samba -u "admin:paswword" --restart always -s "config:/share/conf:rw:admin"
+sudo docker run -d -p 445:445 -v mytank_config:/share/conf --restart always --name samba_tank trnape/rpi-samba -u "admin:password" -s "config:/share/conf:rw:admin"
 
 #console
 

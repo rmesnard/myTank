@@ -30,7 +30,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'corsheaders',
     'app'  # Enable the inner app 
 ]
 
@@ -43,7 +42,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.BrokenLinkEmailsMiddleware',
 ]
 LOGGING = {
@@ -150,6 +148,11 @@ STATICFILES_DIRS = (
 )
 #############################################################
 #############################################################
+
+
+# MYTank specific
+
+
 
 # Activate Django-Heroku.
 django_heroku.settings(locals())

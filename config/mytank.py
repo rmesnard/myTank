@@ -6,8 +6,10 @@ import requests
 from requests.exceptions import HTTPError
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from arduino import arduinoModule
-from tankobj import tank
+from tankobj import tank, tankEncoder
 from httpcom import myHandler
+from json import JSONEncoder
+import json
 
 PORT_NUMBER = 8000
 
@@ -46,9 +48,13 @@ def processEngine():
 
 
 def sendUpdatetoServer():
+    global theTank
+
     #print('sendUpdatetoServer')
-    #response = requests.post('http://127.0.0.1/test',  data=[('apikey', '1c90a0dc-0c8c-439f-b97b-a600d67a451a'),('command', 'set_servo_speed'),('param', '1500')])
-    #json_response = response.json()
+    data = tankEncoder().encode(theTank)
+    response = requests.post('http://127.0.0.1/api/setstatus', data=data,headers={"Content-Type": "application/json"})
+    json_response = response.json()
+    print(json_response['status'])
     return
 
 def main():
