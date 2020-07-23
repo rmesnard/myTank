@@ -14,7 +14,7 @@ cd /usr/share/config
 python manage.py makemigrations
 python manage.py migrate
 
-nohup python3 -u mytank.py 2> mytank.log &
+nohup python3 -u mytank.py 2> mytank_error.log &
 echo "my tank service Started."
 
 nohup gunicorn --config gunicorn-cfg.py core.wsgi

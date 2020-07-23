@@ -10,6 +10,10 @@ var haveEvents = 'GamepadEvent' in window;
 var haveWebkitEvents = 'WebKitGamepadEvent' in window;
 var controllers = {};
 
+window.lastaxe0 = 0
+window.lastaxe1 = 0
+window.lastaxe2 = 0
+window.lastaxe3 = 0
 
 var rAF = window.mozRequestAnimationFrame ||
   window.webkitRequestAnimationFrame ||
@@ -22,7 +26,7 @@ function connecthandler(e) {
 function addgamepad(gamepad) {
   controllers[gamepad.index] = gamepad; 
 
-  $("#button_gamepad").css("background", "Blue");
+  $("#button_gamepad").css("background", "SlateBlue");
   
 
   rAF(updateStatus);
@@ -170,7 +174,7 @@ $( "#button_gamepad" ).click(function() {
 });
   
 $( "#button_debug" ).click(function() {
-  sendMoves(10,10,10,10);
+  sendButton(10);
 });
   
 $( "#button_settings" ).click(function() {

@@ -65,7 +65,7 @@
                   </div>
                   <div class="col-sm-1">
                     <div class="btn btn-dark pull-right"  style="margin-top: 0px;" id="btn_secureenab" ><i class="material-icons"></i></div>
-                    <input type="hidden" value="{{ secure_enabled }}" id="secureenabled" name="secureenabled" >
+                    <input type="hidden" value="{{ proximity_enabled }}" id="secureenabled" name="secureenabled" >
                   </div>
                 </div>
 
@@ -93,6 +93,20 @@
                   </div>
 
                 </div>
+
+                <div class="row">
+                  <div class="col-sm-3">
+                      <label class="form-title" >Log level</label>
+                  </div>
+                  <div class="col-sm-3">
+                    <input type="select" class="form-txt"  value="{{ log_level }}" id="loglevel" name="loglevel" >
+                  </div>
+
+                  <div class="col-sm-6">
+                  </div>
+
+                </div>
+
 
                 <div class="row">
                   <div class="col-sm-6">

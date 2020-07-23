@@ -1,6 +1,7 @@
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from arduino import arduinoModule
 from tankobj import tank
+from urllib.parse import urlparse, parse_qs
 
 class myHandler(SimpleHTTPRequestHandler):
 
@@ -34,34 +35,21 @@ class myHandler(SimpleHTTPRequestHandler):
             self.wfile.write(b"<tr><td>stop A</td><td>%d </td></tr>" % self.server.tank.stopA)
             self.wfile.write(b"<tr><td>stop B</td><td>%d </td></tr>" % self.server.tank.stopB)
             self.wfile.write(b"</table></body>")
-        elif ( self.path.startswith("/command/forward/")):
-            cmds = self.path.split("/")
-            if (len(cmds)==5):
-                self.wfile.write(bytes("forward %s %s" % (cmds[3],cmds[4]),"utf-8"))
-                self.server.tank.cmd_forward(int(cmds[3]),int(cmds[4]))
-        elif ( self.path.startswith("/command/backward/")):
-            cmds = self.path.split("/")
-            if (len(cmds)==5):
-                self.wfile.write(bytes("backward %s %s" % (cmds[3],cmds[4]),"utf-8"))
-                self.server.tank.cmd_backward(int(cmds[3]),int(cmds[4]))
-        elif ( self.path.startswith("/command/left/")):
-            cmds = self.path.split("/")
-            if (len(cmds)==5):
-                self.wfile.write(bytes("left %s %s" % (cmds[3],cmds[4]),"utf-8"))
-                self.server.tank.cmd_left(int(cmds[3]),int(cmds[4]))
-        elif ( self.path.startswith("/command/right/")):
-            cmds = self.path.split("/")
-            if (len(cmds)==5):
-                self.wfile.write(bytes("right %s %s" % (cmds[3],cmds[4]),"utf-8"))
-                self.server.tank.cmd_right(int(cmds[3]),int(cmds[4]))                
         elif ( self.path.startswith("/command/stop")):
             self.wfile.write(bytes("stop","utf-8"))
             self.server.tank.cmd_stop()        
-        elif ( self.path.startswith("/command/move/")):
-            cmds = self.path.split("/")
-            if (len(cmds)==7):
-                self.wfile.write(bytes("move","utf-8"))
-                self.server.tank.cmd_forward(int(cmds[3]),int(cmds[4]))
+        elif ( self.path.startswith("/command/move")):
+            cmds=parse_qs(urlparse(self.path).query)
+            self.wfile.write(bytes("ok","utf-8"))
+            self.server.tank.cmd_move(cmds)
+        elif ( self.path.startswith("/command/button")):
+            cmds=parse_qs(urlparse(self.path).query)
+            self.wfile.write(bytes("ok","utf-8"))
+            self.server.tank.cmd_button(cmds)
+        elif ( self.path.startswith("/settings/update")):
+            settings=parse_qs(urlparse(self.path).query)
+            self.wfile.write(bytes("ok","utf-8"))       
+            self.server.tank.settings.set(settings)                
         else:
             self.wfile.write(b"unknown command")
         
