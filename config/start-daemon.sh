@@ -11,7 +11,7 @@ chmod -R 777 /usr/share/config
 
 cd /usr/share/config
 
-python manage.py makemigrations
+python manage.py makemigrations app
 python manage.py migrate
 
 nohup python3 -u mytank.py 2> mytank_error.log &
