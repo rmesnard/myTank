@@ -18,6 +18,7 @@ class TankSettings(models.Model):
     step_time = models.IntegerField(default=1500)
     idle_time = models.IntegerField(default=10000)
     log_level = models.IntegerField(default=0)
+    current_module = models.IntegerField(default=0)
 
     def is_proximityenable(self):
         if ( proximity_enabled == 0 ):
