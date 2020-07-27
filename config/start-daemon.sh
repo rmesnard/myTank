@@ -14,7 +14,10 @@ cd /usr/share/config
 python manage.py makemigrations app
 python manage.py migrate
 
+nohup gunicorn --config gunicorn-cfg.py core.wsgi
+echo "my tank django Started."
+
+sleep 5s
+
 nohup python3 -u mytank.py 2> mytank_error.log &
 echo "my tank service Started."
-
-nohup gunicorn --config gunicorn-cfg.py core.wsgi

@@ -98,16 +98,17 @@
                   <div class="col-sm-3">
                       <label class="form-title" >Log level</label>
                   </div>
-                  <div class="col-sm-3">
-                    <input type="select" class="form-txt"  value="{{ log_level }}" id="loglevel" name="loglevel" >
+                  <div class="col-sm-1">
+                    <input type="text" class="form-txt"  value="x" id="loglevelstr" >
+                    <input type="hidden" value="{{ log_level }}" id="loglevel" name="loglevel" >
                   </div>
-
-                  <div class="col-sm-6">
+                  <div class="col-sm-2">
+                    <div class="btn btn-dark pull-right"  style="margin-top: 0px;" id="btn_loglevelnext" >+</div>
+                    <div class="btn btn-dark pull-right"  style="margin-top: 0px;" id="btn_loglevelprevious" >-</div>
                   </div>
 
                 </div>
-
-
+                
                 <div class="row">
                   <div class="col-sm-6">
                   <button type="submit" class="btn btn-primary pull-right">Save</button>

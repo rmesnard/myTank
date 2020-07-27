@@ -40,7 +40,6 @@ $( "#btn_anticolmoins" ).click(function() {
   $("#anticollisiondistance" ).val(stepval.toString());
 });
 
-
 $( "#btn_idleplus" ).click(function() {
   var stepval = parseInt($("#idletime" ).val());
   stepval+=10;
@@ -51,6 +50,30 @@ $( "#btn_idlemoins" ).click(function() {
   var stepval = parseInt($("#idletime" ).val());
   stepval-=10;
   $("#idletime" ).val(stepval.toString());
+});
+
+$( "#btn_loglevelprevious" ).click(function() {
+  var stepval = parseInt($("#loglevel" ).val());
+  stepval--;
+
+  if (stepval < 0)
+    stepval = 0;
+
+  $("#loglevel" ).val(stepval.toString());
+  showdebulevel(stepval)
+  
+});
+
+$( "#btn_loglevelnext" ).click(function() {
+  var stepval = parseInt($("#loglevel" ).val());
+  stepval++;
+
+  if (stepval > 3)
+    stepval = 3;
+
+  $("#loglevel" ).val(stepval.toString());
+  showdebulevel(stepval)
+  
 });
 
 $( "#btn_secureenab" ).click(function() {
@@ -83,7 +106,33 @@ $(document).ready(function() {
     $("#btn_secureenab").find("i").html("close");
   }
 
+  var stepval = parseInt($("#loglevel" ).val());
+
+  showdebulevel(stepval);
+
 });
+
+
+function showdebulevel(stepval){
+
+
+  switch(stepval) {
+    case 0:
+        $("#loglevelstr" ).val("Error");
+      break;
+    case 1:
+        $("#loglevelstr" ).val("Warning");
+      break;
+    case 2:
+      $("#loglevelstr" ).val("Info");
+    break;
+    case 3:
+      $("#loglevelstr" ).val("Debug");
+    break;            
+  } 
+
+}
+
 
 
 function twPleinEcran(_element) {

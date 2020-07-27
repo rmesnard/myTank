@@ -20,10 +20,12 @@ urlpatterns = [
     path('settings', views.settings, name='settings'),
     # The Debug page
     path('debug', views.debug, name='debug'),
+    path('init', views.init, name='init'),
 
     # AJAX functions
     path('ajax/sendmove', views.aj_send_move, name='aj_send_move'),
     path('ajax/sendbutton', views.aj_send_button, name='aj_send_button'),
+    path('ajax/info', views.aj_get_status, name='aj_get_status'),
 
     # API functions
     path('api/setstatus', views.api_set_status, name='api_set_status'),

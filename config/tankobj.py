@@ -41,7 +41,7 @@ class tanksettings():
         self.proximity_enabled = 1
         self.idle_time = 10000
         self.proximity_distance = 30
-        self.log_level = 0
+        self.log_level = 2
 
     def set(self,payload):
         self.step_time = int(payload['step_time'][0])
@@ -124,27 +124,16 @@ class tankstodolist():
 
 class tank():
 
-
-
-    def create_rotating_log(self,path):
-        """
-        Creates a rotating log
-        """
-        logger = logging.getLogger("Rotating Log")
-        logger.setLevel(logging.INFO)
-        formatter = logging.Formatter('%(asctime)s :: %(levelname)s :: %(message)s')
-        
-        # add a rotating handler
-        handler = RotatingFileHandler(path,'a', 1000000, 1)
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
-
     def __init__(self):
         self.isRunning = False
-        
-        self.host_name=""
-        self.host_ip=""
-        
+
+        self.server_ready = False
+        # server will be ready when django started and send global settings from the DB
+
+        # getlocal IP for REST API
+        self.host_name="raspberry_django"
+        self.host_ip="192.168.4.10"
+
         self.status = tankstatus()
         self.settings = tanksettings()
         self.Arduino = [] 
@@ -155,26 +144,32 @@ class tank():
 
         self.req_counter = 0
 
-        self.create_rotating_log('tankobj.log')
+        self.logger = logging.getLogger("Rotating Log")
+        self.logger.setLevel(logging.DEBUG)
+        self.formatter = logging.Formatter('%(asctime)s :: %(levelname)s :: %(message)s')
+        
+        # add a rotating handler
+        self.handler = RotatingFileHandler("tank.log",'a', 1000000, 1)
+        self.handler.setFormatter(self.formatter)
+        self.logger.addHandler(self.handler)
+
         self.log('started',2)
 
 
     def log(self,message,level):
         if self.settings.log_level >= 0 and level == 0:
-            logger.error(message)
+            self.logger.error(message)
         if self.settings.log_level > 0 and level == 1:
-            logger.warning(message)
+            self.logger.warning(message)
         if self.settings.log_level > 1 and level == 2:
-            logger.info(message)
+            self.logger.info(message)
         if self.settings.log_level > 2 and level == 3:
-            logger.debug(message)
-
+            self.logger.debug(message)
 
     def sendUpdatetoServer(self):
 
         data = tankEncoder().encode(self.status)
         response = requests.post('http://' + self.host_ip + '/api/setstatus', data=json.dumps(data),headers={"Content-Type": "application/json"})
-        json_response = response.json()
         return
 
 
@@ -307,13 +302,11 @@ class tank():
         axe2 = int(payload['axe2'][0])
         axe3 = int(payload['axe3'][0])
 
-
         duration = self.settings.step_time
 
         speed = 0
 
         self.req_counter = self.req_counter + 1
-
        
         return     
 
@@ -342,7 +335,6 @@ class tank():
         axe2 = int(payload['axe2'][0])
         axe3 = int(payload['axe3'][0])
  
-
         duration = self.settings.step_time
 
         speed = 0

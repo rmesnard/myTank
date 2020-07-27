@@ -1,0 +1,40 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Page User {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+
+  <div class="row">
+    <div class="col-sm-12">
+      <div class="card card-stats">
+      <div class="card-header card-header-warning card-header-icon" id="button_settings" >
+        <div class="card-icon" id="button_main" >
+        <i class="material-icons">build</i>
+        </div>
+        <p class="card-category">build</p>
+      </br>
+    
+
+
+        </div>
+      </div>
+      </div>
+    </div>          
+    
+    <div style="text-align: left;width: 400px;background: white;display: block;position: absolute;left: 170px;top: 25px;z-index: 3;" id="view_debug" ></div>             
+    
+            
+
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+  <script src="/static/assets/js/debug.js"></script>
+
+{% endblock javascripts %}

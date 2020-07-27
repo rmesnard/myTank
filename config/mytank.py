@@ -28,9 +28,7 @@ def main():
         server = HTTPServer(('', PORT_NUMBER), myHandler)
         server.tank = tank()
 
-        # getlocal IP for REST API
-        server.tank.host_name = "raspberry_django" 
-        server.tank.host_ip = "192.168.4.10"
+ 
 
         server.tank.Arduino.append(arduinoModule('/dev/ttyUSB0'))
         server.tank.Arduino.append(arduinoModule('/dev/ttyUSB1'))
@@ -66,9 +64,10 @@ def main():
                     updateNeedeed = True               
 
             server.tank.processEngine()
-            if ( updateNeedeed  ):
+            if updateNeedeed and server.tank.server_ready:
                 server.tank.sendUpdatetoServer()
-            server.tank.process_todolist()         
+            if server.tank.server_ready:
+                server.tank.process_todolist()         
 
     except KeyboardInterrupt:
         print ('stop received, shutting down the web server')

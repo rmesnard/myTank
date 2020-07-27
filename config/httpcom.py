@@ -35,6 +35,9 @@ class myHandler(SimpleHTTPRequestHandler):
             self.wfile.write(b"<tr><td>stop A</td><td>%d </td></tr>" % self.server.tank.stopA)
             self.wfile.write(b"<tr><td>stop B</td><td>%d </td></tr>" % self.server.tank.stopB)
             self.wfile.write(b"</table></body>")
+        elif ( self.path.startswith("/info")):
+            data = tankEncoder().encode(self.server.tank.status)
+            self.wfile.write(bytes(data,"utf-8"))
         elif ( self.path.startswith("/command/stop")):
             self.wfile.write(bytes("stop","utf-8"))
             self.server.tank.cmd_stop()        

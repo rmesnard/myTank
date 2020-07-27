@@ -11,6 +11,7 @@ from django.contrib.auth.models import User
 
 class TankSettings(models.Model):
     id = models.IntegerField(default=1,primary_key=True)
+
     host_name = models.CharField(default="",max_length=50)
     host_ip = models.CharField(default="",max_length=50)
     proximity_enabled = models.IntegerField(default=0)
@@ -28,8 +29,6 @@ class TankSettings(models.Model):
 
 class TankStatus(models.Model):
     id = models.IntegerField(default=1,primary_key=True)
-
-#{"isRunning": false, "gear": "off", "hum": 50.5, "temp": 29.5, "pitch": 0.09, "roll": 180.0, "yaw": -0.9, "power": "off", "speed": 0, "sonar_mode": "F", "sonar_A": 0, "sonar_B": 0, "sonar_C": 0, "sonar_D": 0, "sonar_E": 0, "sonar_F": 0, "sonar_G": 0, "sonar_H": 0, "stopA": 0, "stopB": 0, "SONAR_Id": 0, "CORE_Id": 1}
 
     isRunning = models.IntegerField(default=0)
     gear = models.IntegerField(default=0)

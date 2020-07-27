@@ -15,7 +15,6 @@ import requests
 
 def index(request):
     pagesettings = TankSettings.objects.get(id=1)
-    #context = {'segment' : 'index', 'settings' : global_Settings }
 
     pagesettings.host_name = "raspberry_mytank"
     pagesettings.host_ip = "192.168.4.10"
@@ -27,8 +26,6 @@ def index(request):
 
 def settings(request):
 
-    #pagesettings = TankSettings()
-    #pagesettings.save()
     pagesettings = TankSettings.objects.get(id=1)
 
     if request.method == "POST":
@@ -39,7 +36,7 @@ def settings(request):
         pagesettings.idle_time = int(request.POST['idletime'])
         pagesettings.log_level = int(request.POST['loglevel'])
         pagesettings.save()
-        payload = {'step_time' : pagesettings.step_time , 'proximity_enabled' : pagesettings.proximity_enabled, 'log_level' : pagesettings.log_level , 'idle_time' : pagesettings.idle_time , 'proximity_distance' : pagesettings.proximity_distance }
+        payload = {'step_time' : pagesettings.step_time , 'proximity_enabled' : pagesettings.proximity_enabled , 'log_level' : pagesettings.log_level , 'idle_time' : pagesettings.idle_time , 'proximity_distance' : pagesettings.proximity_distance }
         send_update(pagesettings.host_ip,payload)
 
     #context = {'segment' : 'settings', 'settings' : global_Settings }
@@ -55,6 +52,14 @@ def debug(request):
 
     context = {'segment' : 'debug' , 'isRunning' : currentstatus.isRunning , 'gear' : currentstatus.gear , 'hum' : currentstatus.hum , 'temp' : currentstatus.temp, 'pitch' : currentstatus.pitch , 'roll' : currentstatus.roll , 'yaw' : currentstatus.yaw , 'power' : currentstatus.power , 'speed' : currentstatus.speed, 'stopA' : currentstatus.stopA , 'stopB' : currentstatus.stopB   }
     return render(request, "debug.html", context)
+
+def init(request):
+
+    pagesettings = TankSettings()
+    pagesettings.save()
+
+    context = {'segment' : 'init' }
+    return render(request, "init.html", context)
 
 def aj_send_move(request):
     pagesettings = TankSettings.objects.get(id=1)
@@ -72,6 +77,7 @@ def aj_send_move(request):
 
 def aj_send_button(request):
     pagesettings = TankSettings.objects.get(id=1)
+
     buttonid = request.GET.get('buttonclicked', None)
 
     payload = {'buttonid': buttonid}
@@ -110,10 +116,18 @@ def api_set_status(request):
     data = { 'status': 'ok' }
     return JsonResponse(data)
 
+def aj_get_status(request):
+    currentstatus = TankStatus.objects.get(id=1)
+    pagesettings = TankSettings.objects.get(id=1)
+
+    response = requests.get('http://' + pagesettings.host_ip + ':8000/info')
+
+    return JsonResponse(response)
+
+
 def api_get_settings(request):
-    #pagesettings = TankSettings.objects.get(id=1)
-    pagesettings = TankSettings()
-    pagesettings.save()
+
+    pagesettings = TankSettings.objects.get(id=1)
 
     data = {'step_time' : pagesettings.step_time , 'proximity_enabled' : pagesettings.proximity_enabled , 'log_level' : pagesettings.log_level, 'idle_time' : pagesettings.idle_time , 'anticollision_distance' : pagesettings.proximity_distance }
     return JsonResponse(data)
