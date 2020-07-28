@@ -64,9 +64,9 @@ def main():
                     updateNeedeed = True               
 
             server.tank.processEngine()
-            if updateNeedeed and server.tank.server_ready:
+            if updateNeedeed and server.tank.initialized:
                 server.tank.sendUpdatetoServer()
-            if server.tank.server_ready:
+            if server.tank.initialized:                
                 server.tank.process_todolist()         
 
     except KeyboardInterrupt:

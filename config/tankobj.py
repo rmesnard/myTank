@@ -44,12 +44,19 @@ class tanksettings():
         self.log_level = 2
 
     def set(self,payload):
+        self.step_time = int(payload['step_time'])
+        self.idle_time = int(payload['idle_time'])
+        self.log_level = int(payload['log_level'])
+        self.proximity_enabled = int(payload['proximity_enabled'])
+        self.proximity_distance = int(payload['proximity_distance'])
+
+    def update(self,payload):
         self.step_time = int(payload['step_time'][0])
         self.idle_time = int(payload['idle_time'][0])
         self.log_level = int(payload['log_level'][0])
         self.proximity_enabled = int(payload['proximity_enabled'][0])
         self.proximity_distance = int(payload['proximity_distance'][0])
-        
+
 
 class tankstodo():
 
@@ -77,6 +84,7 @@ class tankstodo():
         self.axe3 = axe3
 
         self.blocking = blocking
+
 
     def isblocking(self):
         if self.blocking == 1 :
@@ -127,8 +135,7 @@ class tank():
     def __init__(self):
         self.isRunning = False
 
-        self.server_ready = False
-        # server will be ready when django started and send global settings from the DB
+        self.initialized = False
 
         # getlocal IP for REST API
         self.host_name="raspberry_django"
@@ -153,8 +160,10 @@ class tank():
         self.handler.setFormatter(self.formatter)
         self.logger.addHandler(self.handler)
 
-        self.log('started',2)
+        # getsettings
+        self.getsettings()
 
+        self.log('started',2)
 
     def log(self,message,level):
         if self.settings.log_level >= 0 and level == 0:
@@ -165,6 +174,18 @@ class tank():
             self.logger.info(message)
         if self.settings.log_level > 2 and level == 3:
             self.logger.debug(message)
+
+
+    def getsettings(self):
+
+        response = requests.post('http://' + self.host_ip + '/api/getsettings', headers={"Content-Type": "application/json"})
+
+        self.settings.set(response.json())
+
+        self.log('initialized',2)
+        self.initialized = True        
+        return
+
 
     def sendUpdatetoServer(self):
 
@@ -285,7 +306,8 @@ class tank():
 
     def cmd_button(self,payload):
         buttonid = int(payload['buttonid'][0])
-        
+        self.log('receive button',2)
+        self.log(buttonid,2)
         if (buttonid == 10):
             #STOP  button X
             self.cmd_stop()
@@ -315,7 +337,7 @@ class tank():
         offset = self.todolist.position
 
         if self.todolist.queue[offset].action == 1:
-            process_todo_button(self.todolist.queue[offset].buttonpushed)
+            self.process_todo_button(self.todolist.queue[offset].buttonpushed)
         #elif self.queue[offset].action == 2:
         #    process_todo_move(self.queue[offset].buttonpushed)
 
@@ -335,6 +357,7 @@ class tank():
         axe2 = int(payload['axe2'][0])
         axe3 = int(payload['axe3'][0])
  
+
         duration = self.settings.step_time
 
         speed = 0

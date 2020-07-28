@@ -46,9 +46,9 @@ def settings(request):
 
 def debug(request):
 
-    #currentstatus = TankStatus()
-    #currentstatus.save()
-    currentstatus = TankStatus.objects.get(id=1)
+    currentstatus = TankStatus()
+    currentstatus.save()
+    #currentstatus = TankStatus.objects.get(id=1)
 
     context = {'segment' : 'debug' , 'isRunning' : currentstatus.isRunning , 'gear' : currentstatus.gear , 'hum' : currentstatus.hum , 'temp' : currentstatus.temp, 'pitch' : currentstatus.pitch , 'roll' : currentstatus.roll , 'yaw' : currentstatus.yaw , 'power' : currentstatus.power , 'speed' : currentstatus.speed, 'stopA' : currentstatus.stopA , 'stopB' : currentstatus.stopB   }
     return render(request, "debug.html", context)
@@ -129,8 +129,8 @@ def api_get_settings(request):
 
     pagesettings = TankSettings.objects.get(id=1)
 
-    data = {'step_time' : pagesettings.step_time , 'proximity_enabled' : pagesettings.proximity_enabled , 'log_level' : pagesettings.log_level, 'idle_time' : pagesettings.idle_time , 'anticollision_distance' : pagesettings.proximity_distance }
-    return JsonResponse(data)
+    payload = {'step_time' : pagesettings.step_time , 'proximity_enabled' : pagesettings.proximity_enabled , 'log_level' : pagesettings.log_level , 'idle_time' : pagesettings.idle_time , 'proximity_distance' : pagesettings.proximity_distance }
+    return JsonResponse(payload)
 
 def send_update(host,payload):
     response = requests.get('http://' + host + ':8000/settings/update', params=payload)

@@ -52,7 +52,7 @@ class myHandler(SimpleHTTPRequestHandler):
         elif ( self.path.startswith("/settings/update")):
             settings=parse_qs(urlparse(self.path).query)
             self.wfile.write(bytes("ok","utf-8"))       
-            self.server.tank.settings.set(settings)                
+            self.server.tank.settings.update(settings)
         else:
             self.wfile.write(b"unknown command")
         
